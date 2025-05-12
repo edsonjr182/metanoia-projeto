@@ -48,46 +48,42 @@ export default function Home() {
       {/* Hero Section */}
       <section className="relative overflow-hidden bg-gradient-to-br from-blue-950 to-blue-900 text-white">
         <div className="absolute inset-0 z-0">
-          <div className="absolute inset-0 bg-blue-950/70"></div>
           <Image src="/diverse-youth-collaboration.png" alt="" fill className="object-cover" priority />
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-950/90 to-blue-900/75"></div>
         </div>
-        <div
-          className="absolute inset-0 z-0 bg-gradient-to-r from-blue-950/90 via-blue-900/80 to-transparent"
-          style={{
-            maskImage: "radial-gradient(circle at center, transparent 0%, black 100%)",
-            WebkitMaskImage: "radial-gradient(circle at center, transparent 0%, black 100%)",
-          }}
-        ></div>
         <div className="container relative z-10 mx-auto px-4 py-24 sm:px-6 lg:px-8 lg:py-32">
           <motion.div
             ref={heroRef}
             initial="hidden"
             animate={heroInView ? "show" : "hidden"}
             variants={container}
-            className="max-w-3xl"
+            className="relative max-w-3xl rounded-2xl bg-blue-950/40 p-8 backdrop-blur-sm"
           >
             <motion.div
               variants={item}
-              className="mb-2 inline-block rounded-full bg-orange-500/20 px-4 py-1 text-sm font-medium text-orange-300"
+              className="mb-2 inline-block rounded-full bg-orange-500 px-4 py-1 text-sm font-medium text-white"
             >
               Transformando vidas e comunidades
             </motion.div>
-            <motion.h1 variants={item} className="mb-6 text-4xl font-bold leading-tight sm:text-5xl md:text-6xl">
-              Projeto <span className="text-orange-400">Metanoia</span>
+            <motion.h1
+              variants={item}
+              className="mb-6 text-4xl font-bold leading-tight text-white sm:text-5xl md:text-6xl"
+            >
+              Projeto <span className="text-orange-300">Metanoia</span>
             </motion.h1>
-            <motion.p variants={item} className="mb-8 text-xl leading-relaxed text-blue-50">
+            <motion.p variants={item} className="mb-8 text-xl leading-relaxed text-white">
               Transformando mentalidades e ajudando jovens de periferia a construírem um futuro melhor através de
               educação, apoio e oportunidades.
             </motion.p>
             <motion.div variants={item} className="flex flex-wrap gap-4">
-              <Button asChild size="lg" className="bg-orange-500 hover:bg-orange-600">
+              <Button asChild size="lg" className="bg-orange-500 hover:bg-orange-600 text-white font-medium">
                 <Link href="/sobre">Conheça o Projeto</Link>
               </Button>
               <Button
                 asChild
                 size="lg"
                 variant="outline"
-                className="border-white/30 bg-white/5 text-white backdrop-blur-sm hover:bg-white/10"
+                className="border-white bg-white/10 text-white backdrop-blur-sm hover:bg-white/20 font-medium"
               >
                 <Link href="/contato">Seja um Parceiro</Link>
               </Button>
