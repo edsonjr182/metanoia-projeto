@@ -1,9 +1,24 @@
+"use client"
+
+import { useEffect, useState } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Instagram, Facebook, Youtube, ArrowRight } from "lucide-react"
 import { Input } from "@/components/ui/input"
 
 export default function Footer() {
+  const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false)
+
+  useEffect(() => {
+    const adminToken = localStorage.getItem("admin_token")
+    setIsAdminLoggedIn(!!adminToken)
+  }, [])
+
+  // Se o usuário admin estiver logado, não renderizar o footer
+  if (isAdminLoggedIn) {
+    return null
+  }
+
   return (
     <footer className="bg-gradient-to-br from-blue-950 to-blue-900 text-white">
       <div className="container mx-auto px-4 py-12 sm:px-6 lg:px-8">

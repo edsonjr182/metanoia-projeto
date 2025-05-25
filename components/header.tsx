@@ -22,15 +22,26 @@ export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const pathname = usePathname()
+  const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false)
+
+  const handleScroll = () => {
+    setScrolled(window.scrollY > 10)
+  }
 
   useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 10)
-    }
+    const adminToken = localStorage.getItem("admin_token")
+    setIsAdminLoggedIn(!!adminToken)
+  }, [])
 
+  useEffect(() => {
     window.addEventListener("scroll", handleScroll)
     return () => window.removeEventListener("scroll", handleScroll)
   }, [])
+
+  // Se o usuário admin estiver logado, não renderizar o header
+  if (isAdminLoggedIn) {
+    return null
+  }
 
   return (
     <header
