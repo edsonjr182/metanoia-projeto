@@ -1,17 +1,14 @@
 import type React from "react"
 import type { Metadata } from "next"
-import { Outfit } from "next/font/google"
+import { Inter } from "next/font/google"
 import "./globals.css"
-import Header from "@/components/header"
-import Footer from "@/components/footer"
-import { ThemeProvider } from "@/components/theme-provider"
+import { AuthProvider } from "@/contexts/auth-context"
 
-const outfit = Outfit({ subsets: ["latin"] })
+const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "Projeto Metanoia | Transformando Mentalidades",
-  description:
-    "Ajudando jovens e adolescentes de periferia a voltarem a sonhar com o futuro através de cursos técnicos, palestras, apoio emocional e empreendedorismo.",
+  title: "Projeto Metanoia - Transformando Vidas",
+  description: "Ajudando jovens e adolescentes de periferia a voltarem a sonhar com o futuro",
     generator: 'v0.dev'
 }
 
@@ -21,15 +18,9 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="pt-BR" suppressHydrationWarning>
-      <body className={outfit.className}>
-        <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
-          <div className="flex min-h-screen flex-col">
-            <Header />
-            <main className="flex-1">{children}</main>
-            <Footer />
-          </div>
-        </ThemeProvider>
+    <html lang="pt-BR">
+      <body className={inter.className}>
+        <AuthProvider>{children}</AuthProvider>
       </body>
     </html>
   )

@@ -1,483 +1,353 @@
-"use client"
-
 import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Heart, Users, BookOpen, Lightbulb, ArrowRight, Star, Sparkles, TrendingUp, Award, Target } from "lucide-react"
 import Link from "next/link"
-import Image from "next/image"
-import { ArrowRight, Calendar, BookOpen, Users, Heart, Briefcase, ChevronRight } from "lucide-react"
-import FeatureCard from "@/components/feature-card"
-import TestimonialCard from "@/components/testimonial-card"
-import ContactForm from "@/components/contact-form"
-import { motion } from "framer-motion"
-import { useInView } from "react-intersection-observer"
-import CountUp from "@/components/count-up"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import TopBanner from "@/components/top-banner"
+import Navbar from "@/components/navbar"
+import Footer from "@/components/footer"
 
-export default function Home() {
-  const [heroRef, heroInView] = useInView({
-    triggerOnce: true,
-    threshold: 0.1,
-  })
-
-  const [statsRef, statsInView] = useInView({
-    triggerOnce: true,
-    threshold: 0.1,
-  })
-
-  const [featuresRef, featuresInView] = useInView({
-    triggerOnce: true,
-    threshold: 0.1,
-  })
-
-  const container = {
-    hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-      },
-    },
-  }
-
-  const item = {
-    hidden: { opacity: 0, y: 20 },
-    show: { opacity: 1, y: 0, transition: { duration: 0.5 } },
-  }
-
+export default function HomePage() {
   return (
-    <div className="flex flex-col">
-      {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-blue-950 to-blue-900 text-white">
-        <div className="absolute inset-0 z-0">
-          <Image src="/diverse-youth-collaboration.png" alt="" fill className="object-cover" priority />
-          <div className="absolute inset-0 bg-gradient-to-br from-blue-950/90 to-blue-900/75"></div>
-        </div>
-        <div className="container relative z-10 mx-auto px-4 py-24 sm:px-6 lg:px-8 lg:py-32">
-          <motion.div
-            ref={heroRef}
-            initial="hidden"
-            animate={heroInView ? "show" : "hidden"}
-            variants={container}
-            className="relative max-w-3xl rounded-2xl bg-blue-950/40 p-8 backdrop-blur-sm"
-          >
-            <motion.div
-              variants={item}
-              className="mb-2 inline-block rounded-full bg-orange-500 px-4 py-1 text-sm font-medium text-white"
-            >
-              Transformando vidas e comunidades
-            </motion.div>
-            <motion.h1
-              variants={item}
-              className="mb-6 text-4xl font-bold leading-tight text-white sm:text-5xl md:text-6xl"
-            >
-              Projeto <span className="text-orange-300">Metanoia</span>
-            </motion.h1>
-            <motion.p variants={item} className="mb-8 text-xl leading-relaxed text-white">
-              Transformando mentalidades e ajudando jovens de periferia a construírem um futuro melhor através de
-              educação, apoio e oportunidades.
-            </motion.p>
-            <motion.div variants={item} className="flex flex-wrap gap-4">
-              <Button asChild size="lg" className="bg-orange-500 hover:bg-orange-600 text-white font-medium">
-                <Link href="/sobre">Conheça o Projeto</Link>
-              </Button>
-              <Button
-                asChild
-                size="lg"
-                variant="outline"
-                className="border-white bg-white/10 text-white backdrop-blur-sm hover:bg-white/20 font-medium"
-              >
-                <Link href="/contato">Seja um Parceiro</Link>
-              </Button>
-            </motion.div>
-          </motion.div>
-        </div>
-        <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-white to-transparent"></div>
-      </section>
+    <div className="min-h-screen overflow-hidden">
+      <TopBanner />
+      <Navbar />
 
-      {/* Stats Section */}
-      <section className="bg-white py-12">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            ref={statsRef}
-            initial={{ opacity: 0, y: 20 }}
-            animate={statsInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
-            transition={{ duration: 0.6 }}
-            className="mx-auto grid max-w-5xl grid-cols-2 gap-8 rounded-2xl bg-gradient-to-br from-blue-50 to-blue-100/50 p-6 shadow-lg md:grid-cols-4 md:p-8"
-          >
-            <div className="flex flex-col items-center justify-center text-center">
-              <span className="text-3xl font-bold text-blue-950 md:text-4xl">
-                {statsInView && <CountUp end={500} duration={2} />}+
-              </span>
-              <span className="mt-2 text-sm text-blue-700">Jovens Impactados</span>
-            </div>
-            <div className="flex flex-col items-center justify-center text-center">
-              <span className="text-3xl font-bold text-blue-950 md:text-4xl">
-                {statsInView && <CountUp end={30} duration={2} />}+
-              </span>
-              <span className="mt-2 text-sm text-blue-700">Palestras Realizadas</span>
-            </div>
-            <div className="flex flex-col items-center justify-center text-center">
-              <span className="text-3xl font-bold text-blue-950 md:text-4xl">
-                {statsInView && <CountUp end={15} duration={2} />}+
-              </span>
-              <span className="mt-2 text-sm text-blue-700">Parcerias</span>
-            </div>
-            <div className="flex flex-col items-center justify-center text-center">
-              <span className="text-3xl font-bold text-blue-950 md:text-4xl">
-                {statsInView && <CountUp end={5} duration={2} />}
-              </span>
-              <span className="mt-2 text-sm text-blue-700">Comunidades</span>
-            </div>
-          </motion.div>
+      {/* Hero Section - Redesigned with proper spacing */}
+      <section className="relative min-h-screen flex items-center justify-center pt-40 pb-20">
+        {/* Enhanced background with better gradients */}
+        <div className="absolute inset-0 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 -z-10">
+          <div className="absolute inset-0 bg-mesh-gradient opacity-30"></div>
+          <div className="absolute inset-0 bg-dot-pattern opacity-20"></div>
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/50 via-transparent to-transparent"></div>
         </div>
-      </section>
 
-      {/* Mission Section */}
-      <section className="bg-white py-16">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="mx-auto max-w-3xl text-center">
-            <span className="mb-2 inline-block rounded-full bg-blue-100 px-3 py-1 text-sm font-medium text-blue-800">
-              Nossa Missão
-            </span>
-            <h2 className="mb-6 text-3xl font-bold text-blue-950 sm:text-4xl">
-              Transformando Mentalidades, Construindo Futuros
-            </h2>
-            <p className="mb-8 text-lg leading-relaxed text-gray-700">
-              O Projeto Metanoia nasceu da necessidade de oferecer novas perspectivas para jovens e adolescentes de
-              comunidades periféricas, incentivando-os a sonhar e construir um futuro melhor através de educação, apoio
-              emocional e desenvolvimento de habilidades.
+        {/* Floating elements with better positioning and z-index */}
+        <div className="absolute top-32 left-10 w-32 h-32 bg-gradient-to-br from-orange-400/20 to-orange-600/15 rounded-full blur-3xl animate-float -z-5"></div>
+        <div
+          className="absolute bottom-40 right-16 w-40 h-40 bg-gradient-to-br from-emerald-400/20 to-emerald-600/10 rounded-full blur-3xl animate-float -z-5"
+          style={{ animationDelay: "2s" }}
+        ></div>
+        <div
+          className="absolute top-1/2 left-1/4 w-24 h-24 bg-gradient-to-br from-blue-400/15 to-blue-600/8 rounded-full blur-3xl animate-float -z-5"
+          style={{ animationDelay: "4s" }}
+        ></div>
+        <div
+          className="absolute top-1/3 right-1/4 w-36 h-36 bg-gradient-to-br from-purple-400/20 to-purple-600/10 rounded-full blur-3xl animate-float -z-5"
+          style={{ animationDelay: "1s" }}
+        ></div>
+
+        <div className="relative z-10 content-width container-padding text-center max-w-7xl mx-auto">
+          <div className="animate-fade-in space-y-8">
+            <Badge className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-orange-500/10 to-orange-600/10 text-orange-300 border border-orange-400/20 hover:bg-orange-500/20 transition-all duration-500 text-sm font-medium backdrop-blur-xl rounded-full">
+              <Sparkles className="mr-3 h-5 w-5" />
+              Transformando Vidas desde 2020
+            </Badge>
+
+            <h1 className="text-5xl md:text-7xl lg:text-8xl xl:text-9xl font-bold text-white leading-none tracking-tight">
+              Projeto{" "}
+              <span className="relative inline-block">
+                <span className="text-gradient-orange animate-glow">Metanoia</span>
+                <div className="absolute -inset-2 bg-gradient-to-r from-orange-400/30 to-orange-600/30 rounded-2xl blur-xl opacity-50 animate-pulse-slow -z-10"></div>
+              </span>
+            </h1>
+
+            <p className="text-xl md:text-2xl lg:text-3xl text-gray-300 max-w-5xl mx-auto leading-relaxed font-light">
+              Transformando vidas através da{" "}
+              <span className="text-white font-semibold bg-gradient-to-r from-orange-400/20 to-orange-600/20 px-3 py-1 rounded-xl backdrop-blur-sm border border-orange-400/20">
+                educação
+              </span>
+              ,{" "}
+              <span className="text-white font-semibold bg-gradient-to-r from-emerald-400/20 to-emerald-600/20 px-3 py-1 rounded-xl backdrop-blur-sm border border-emerald-400/20">
+                esperança
+              </span>{" "}
+              e{" "}
+              <span className="text-white font-semibold bg-gradient-to-r from-blue-400/20 to-blue-600/20 px-3 py-1 rounded-xl backdrop-blur-sm border border-blue-400/20">
+                oportunidades
+              </span>
+              .<br />
+              <span className="text-white font-bold mt-4 block">Ajudamos jovens e adolescentes de periferia</span> a
+              voltarem a sonhar com o futuro.
             </p>
-            <Button asChild className="group bg-blue-950 transition-all duration-300 hover:bg-blue-900">
+
+            <div className="flex flex-col sm:flex-row gap-6 justify-center items-center pt-8">
               <Link href="/sobre">
-                Saiba mais sobre nossa história
-                <ArrowRight className="ml-2 h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+                <Button
+                  size="lg"
+                  className="group px-12 py-6 text-xl font-semibold bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white shadow-xl hover:shadow-glow-orange transition-all duration-500 rounded-3xl relative overflow-hidden"
+                >
+                  <span className="relative z-10 flex items-center">
+                    Conheça o Projeto
+                    <ArrowRight className="ml-4 h-6 w-6 group-hover:translate-x-2 transition-transform duration-300" />
+                  </span>
+                  <div className="absolute inset-0 bg-gradient-to-r from-orange-400 to-orange-500 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                </Button>
               </Link>
-            </Button>
-          </div>
-        </div>
-      </section>
-
-      {/* Features Section */}
-      <section className="bg-gradient-to-b from-white to-blue-50 py-16">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="mb-12 text-center">
-            <span className="mb-2 inline-block rounded-full bg-orange-100 px-3 py-1 text-sm font-medium text-orange-800">
-              O que oferecemos
-            </span>
-            <h2 className="text-3xl font-bold text-blue-950 sm:text-4xl">Nossos Programas</h2>
-          </div>
-          <motion.div
-            ref={featuresRef}
-            initial="hidden"
-            animate={featuresInView ? "show" : "hidden"}
-            variants={container}
-            className="grid gap-8 md:grid-cols-2 lg:grid-cols-3"
-          >
-            <FeatureCard
-              icon={<Calendar className="h-10 w-10 text-orange-500" />}
-              title="Palestras"
-              description="Eventos inspiradores com profissionais de diversas áreas compartilhando experiências e conhecimentos."
-              link="/palestras"
-            />
-            <FeatureCard
-              icon={<BookOpen className="h-10 w-10 text-orange-500" />}
-              title="Cursos Técnicos"
-              description="Informações sobre cursos gratuitos e oportunidades de capacitação profissional."
-              link="/cursos"
-            />
-            <FeatureCard
-              icon={<Users className="h-10 w-10 text-orange-500" />}
-              title="Área para Jovens"
-              description="Conteúdo motivacional, dicas de desenvolvimento pessoal e orientação vocacional."
-              link="/jovens"
-            />
-            <FeatureCard
-              icon={<Heart className="h-10 w-10 text-orange-500" />}
-              title="Apoio às Famílias"
-              description="Orientações e recursos para famílias apoiarem o desenvolvimento dos jovens."
-              link="/familias"
-            />
-            <FeatureCard
-              icon={<Briefcase className="h-10 w-10 text-orange-500" />}
-              title="Empreendedorismo"
-              description="Noções básicas de empreendedorismo e desenvolvimento de projetos."
-              link="/empreendedorismo"
-            />
-            <FeatureCard
-              icon={<Users className="h-10 w-10 text-orange-500" />}
-              title="Parcerias"
-              description="Oportunidades para empresas e profissionais contribuírem com o projeto."
-              link="/contato"
-            />
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Testimonials */}
-      <section className="bg-blue-50 py-16">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="mb-12 text-center">
-            <span className="mb-2 inline-block rounded-full bg-blue-100 px-3 py-1 text-sm font-medium text-blue-800">
-              Depoimentos
-            </span>
-            <h2 className="text-3xl font-bold text-blue-950 sm:text-4xl">Histórias de Transformação</h2>
-          </div>
-          <Tabs defaultValue="jovens" className="mx-auto max-w-4xl">
-            <TabsList className="mb-8 grid w-full grid-cols-3">
-              <TabsTrigger value="jovens">Jovens</TabsTrigger>
-              <TabsTrigger value="familias">Famílias</TabsTrigger>
-              <TabsTrigger value="parceiros">Parceiros</TabsTrigger>
-            </TabsList>
-            <TabsContent value="jovens">
-              <div className="grid gap-8 md:grid-cols-3">
-                <TestimonialCard
-                  quote="O Projeto Metanoia mudou minha perspectiva sobre o futuro. Hoje estou cursando técnico em informática e tenho planos para a faculdade."
-                  author="Carlos, 17 anos"
-                  location="Zona Leste"
-                  image="/testimonial-1.png"
-                />
-                <TestimonialCard
-                  quote="As palestras me inspiraram a buscar novos caminhos. Consegui uma bolsa de estudos e agora ajudo outros jovens da minha comunidade."
-                  author="Juliana, 19 anos"
-                  location="Zona Sul"
-                  image="/testimonial-2.png"
-                />
-                <TestimonialCard
-                  quote="Aprendi que minha origem não define meu destino. Com o apoio do projeto, estou desenvolvendo meu próprio negócio digital."
-                  author="Mateus, 18 anos"
-                  location="Zona Norte"
-                  image="/testimonial-3.png"
-                />
-              </div>
-            </TabsContent>
-            <TabsContent value="familias">
-              <div className="grid gap-8 md:grid-cols-3">
-                <TestimonialCard
-                  quote="Como mãe, o apoio do projeto foi fundamental para entender melhor meu filho adolescente e ajudá-lo a encontrar seu caminho."
-                  author="Márcia, mãe de participante"
-                  location="Zona Norte"
-                  image="/testimonial-4.png"
-                />
-                <TestimonialCard
-                  quote="O projeto nos ajudou a criar um ambiente mais saudável em casa para apoiar os sonhos do nosso filho."
-                  author="Roberto, pai de participante"
-                  location="Zona Oeste"
-                  image="/testimonial-5.png"
-                />
-                <TestimonialCard
-                  quote="As orientações que recebemos transformaram nossa relação familiar e a forma como apoiamos a educação dos nossos filhos."
-                  author="Ana, mãe de participante"
-                  location="Zona Sul"
-                  image="/testimonial-6.png"
-                />
-              </div>
-            </TabsContent>
-            <TabsContent value="parceiros">
-              <div className="grid gap-8 md:grid-cols-3">
-                <TestimonialCard
-                  quote="Apoiar o Projeto Metanoia tem sido uma experiência transformadora também para nossa empresa e colaboradores."
-                  author="Empresa ABC"
-                  location="Parceiro desde 2022"
-                  image="/testimonial-7.png"
-                />
-                <TestimonialCard
-                  quote="Ver o impacto direto que nosso apoio tem na vida desses jovens é extremamente gratificante."
-                  author="Instituto XYZ"
-                  location="Parceiro desde 2021"
-                  image="/testimonial-8.png"
-                />
-                <TestimonialCard
-                  quote="A seriedade e o compromisso do Projeto Metanoia com a transformação social nos inspiram a continuar apoiando."
-                  author="Fundação ABC"
-                  location="Parceiro desde 2023"
-                  image="/testimonial-9.png"
-                />
-              </div>
-            </TabsContent>
-          </Tabs>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-blue-900 to-blue-950 py-20 text-white">
-        <div className="absolute inset-0 z-0 opacity-10">
-          <Image src="/pattern-bg.png" alt="" fill className="object-cover" />
-        </div>
-        <div className="container relative z-10 mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="mx-auto max-w-4xl text-center">
-            <h2 className="mb-6 text-3xl font-bold sm:text-4xl">Faça Parte dessa Transformação</h2>
-            <p className="mb-8 text-lg text-blue-100">
-              Junte-se a nós nessa missão de transformar vidas e construir um futuro melhor para nossa juventude.
-              Existem diversas formas de contribuir.
-            </p>
-            <div className="flex flex-wrap justify-center gap-4">
-              <Button asChild size="lg" className="bg-orange-500 hover:bg-orange-600">
-                <Link href="/contato">Seja um Parceiro</Link>
-              </Button>
-              <Button
-                asChild
-                size="lg"
-                variant="outline"
-                className="border-white/30 bg-white/5 text-white backdrop-blur-sm hover:bg-white/10"
-              >
-                <Link href="/sobre">Saiba Mais</Link>
-              </Button>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Events Preview */}
-      <section className="bg-white py-16">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="mb-12 flex flex-col items-center justify-between gap-4 md:flex-row">
-            <div>
-              <span className="mb-2 inline-block rounded-full bg-orange-100 px-3 py-1 text-sm font-medium text-orange-800">
-                Agenda
-              </span>
-              <h2 className="text-3xl font-bold text-blue-950 sm:text-4xl">Próximos Eventos</h2>
-            </div>
-            <Button asChild variant="outline" className="group">
-              <Link href="/palestras" className="flex items-center">
-                Ver todos os eventos
-                <ChevronRight className="ml-1 h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+              <Link href="/contato">
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="group px-12 py-6 text-xl font-semibold text-white border-2 border-white/50 hover:border-white/80 bg-white/10 hover:bg-white/20 backdrop-blur-xl rounded-3xl transition-all duration-500 hover:shadow-xl"
+                >
+                  <span className="flex items-center">
+                    Seja Parceiro
+                    <Heart className="ml-4 h-6 w-6 group-hover:scale-110 transition-transform duration-300" />
+                  </span>
+                </Button>
               </Link>
-            </Button>
-          </div>
-          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-            <div className="group relative overflow-hidden rounded-xl bg-white shadow-md transition-all duration-300 hover:shadow-xl">
-              <div className="relative h-48 overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-t from-blue-950/80 to-transparent"></div>
-                <Image
-                  src="/tech-event.png"
-                  alt="Tecnologia como Ferramenta de Transformação"
-                  fill
-                  className="object-cover transition-transform duration-500 group-hover:scale-105"
-                />
-                <div className="absolute bottom-4 left-4 rounded-lg bg-orange-500 px-3 py-1 text-sm font-medium text-white">
-                  15 Jun
-                </div>
-              </div>
-              <div className="p-6">
-                <h3 className="mb-2 text-xl font-bold text-blue-950">Tecnologia como Ferramenta de Transformação</h3>
-                <p className="mb-4 text-gray-600">
-                  Como a tecnologia pode abrir portas para jovens de comunidades periféricas e transformar realidades.
-                </p>
-                <div className="flex items-center text-sm text-gray-500">
-                  <Calendar className="mr-2 h-4 w-4 text-orange-500" />
-                  <span>15 de Junho, 2025 • 19:00</span>
-                </div>
-                <Button asChild className="mt-4 w-full bg-blue-950 hover:bg-blue-900">
-                  <Link href="/palestras">Inscrever-se</Link>
-                </Button>
-              </div>
             </div>
-            <div className="group relative overflow-hidden rounded-xl bg-white shadow-md transition-all duration-300 hover:shadow-xl">
-              <div className="relative h-48 overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-t from-blue-950/80 to-transparent"></div>
-                <Image
-                  src="/finance-event.png"
-                  alt="Educação Financeira para Jovens"
-                  fill
-                  className="object-cover transition-transform duration-500 group-hover:scale-105"
-                />
-                <div className="absolute bottom-4 left-4 rounded-lg bg-orange-500 px-3 py-1 text-sm font-medium text-white">
-                  22 Jun
-                </div>
-              </div>
-              <div className="p-6">
-                <h3 className="mb-2 text-xl font-bold text-blue-950">Educação Financeira para Jovens</h3>
-                <p className="mb-4 text-gray-600">
-                  Aprenda conceitos básicos de finanças pessoais e como fazer seu dinheiro trabalhar para você desde
-                  cedo.
-                </p>
-                <div className="flex items-center text-sm text-gray-500">
-                  <Calendar className="mr-2 h-4 w-4 text-orange-500" />
-                  <span>22 de Junho, 2025 • 15:00</span>
-                </div>
-                <Button asChild className="mt-4 w-full bg-blue-950 hover:bg-blue-900">
-                  <Link href="/palestras">Inscrever-se</Link>
-                </Button>
-              </div>
-            </div>
-            <div className="group relative overflow-hidden rounded-xl bg-white shadow-md transition-all duration-300 hover:shadow-xl">
-              <div className="relative h-48 overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-t from-blue-950/80 to-transparent"></div>
-                <Image
-                  src="/mental-health-event.png"
-                  alt="Saúde Mental e Autoconhecimento"
-                  fill
-                  className="object-cover transition-transform duration-500 group-hover:scale-105"
-                />
-                <div className="absolute bottom-4 left-4 rounded-lg bg-orange-500 px-3 py-1 text-sm font-medium text-white">
-                  30 Jun
-                </div>
-              </div>
-              <div className="p-6">
-                <h3 className="mb-2 text-xl font-bold text-blue-950">Saúde Mental e Autoconhecimento</h3>
-                <p className="mb-4 text-gray-600">
-                  A importância do cuidado com a saúde mental e como o autoconhecimento pode ajudar no desenvolvimento
-                  pessoal.
-                </p>
-                <div className="flex items-center text-sm text-gray-500">
-                  <Calendar className="mr-2 h-4 w-4 text-orange-500" />
-                  <span>30 de Junho, 2025 • 18:30</span>
-                </div>
-                <Button asChild className="mt-4 w-full bg-blue-950 hover:bg-blue-900">
-                  <Link href="/palestras">Inscrever-se</Link>
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
 
-      {/* Contact Section */}
-      <section className="bg-gradient-to-br from-blue-50 to-white py-16">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="mx-auto max-w-4xl">
-            <div className="rounded-2xl bg-white p-8 shadow-xl lg:p-12">
-              <div className="mb-8 text-center">
-                <span className="mb-2 inline-block rounded-full bg-blue-100 px-3 py-1 text-sm font-medium text-blue-800">
-                  Contato
-                </span>
-                <h2 className="text-3xl font-bold text-blue-950 sm:text-4xl">Entre em Contato</h2>
-                <p className="mt-2 text-gray-600">
-                  Tem dúvidas, sugestões ou quer participar do Projeto Metanoia? Fale conosco.
-                </p>
-              </div>
-              <div className="grid gap-8 md:grid-cols-2">
-                <div>
-                  <h3 className="mb-4 text-xl font-semibold text-blue-950">Fale Conosco</h3>
-                  <p className="mb-6 text-gray-600">
-                    Preencha o formulário ao lado ou entre em contato pelos nossos canais.
-                  </p>
-                  <div className="space-y-4">
-                    <div className="flex items-center">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-orange-100 text-orange-500">
-                        <span className="text-lg">📧</span>
-                      </div>
-                      <span className="ml-3 text-gray-700">contato@projetometanoia.org.br</span>
-                    </div>
-                    <div className="flex items-center">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-orange-100 text-orange-500">
-                        <span className="text-lg">📱</span>
-                      </div>
-                      <span className="ml-3 text-gray-700">(11) 99999-9999</span>
-                    </div>
-                    <div className="flex items-center">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-orange-100 text-orange-500">
-                        <span className="text-lg">📍</span>
-                      </div>
-                      <span className="ml-3 text-gray-700">São Paulo, SP</span>
-                    </div>
+            {/* Enhanced stats preview */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto pt-16">
+              {[
+                { number: "500+", label: "Jovens Impactados", icon: Users, color: "orange" },
+                { number: "50+", label: "Palestras Realizadas", icon: Award, color: "emerald" },
+                { number: "20+", label: "Parcerias Ativas", icon: Target, color: "blue" },
+              ].map((stat, index) => (
+                <div
+                  key={stat.label}
+                  className="glass-strong p-6 rounded-2xl hover:bg-white/[0.15] transition-all duration-500 group animate-slide-up border border-white/10 backdrop-blur-xl"
+                  style={{ animationDelay: `${index * 200}ms` }}
+                >
+                  <stat.icon
+                    className={`h-8 w-8 text-${stat.color}-400 mx-auto mb-3 group-hover:scale-110 transition-transform duration-300`}
+                  />
+                  <div
+                    className={`text-3xl font-bold text-white mb-2 group-hover:text-${stat.color}-300 transition-colors duration-300`}
+                  >
+                    {stat.number}
                   </div>
+                  <div className="text-gray-300 text-sm font-medium">{stat.label}</div>
                 </div>
-                <ContactForm />
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Enhanced scroll indicator */}
+        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce-slow z-20">
+          <div className="w-8 h-14 border-2 border-white/40 rounded-full flex justify-center backdrop-blur-sm bg-white/5">
+            <div className="w-1.5 h-5 bg-gradient-to-b from-white/80 to-transparent rounded-full mt-2 animate-pulse-slow"></div>
+          </div>
+        </div>
+      </section>
+
+      {/* Features Section - Completely redesigned */}
+      <section className="section-padding bg-gradient-to-b from-gray-50 via-white to-gray-50 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-orange-50/50 via-transparent to-emerald-50/30"></div>
+
+        <div className="relative z-10 content-width container-padding">
+          <div className="text-center mb-24 animate-fade-in">
+            <Badge className="mb-8 px-8 py-4 bg-gradient-to-r from-orange-100 to-orange-200 text-orange-700 border border-orange-200 text-base font-medium rounded-full shadow-soft">
+              <TrendingUp className="mr-3 h-5 w-5" />
+              Como Transformamos Vidas
+            </Badge>
+            <h2 className="font-bold text-slate-900 mb-10 leading-tight">
+              Nosso <span className="text-gradient-orange">Impacto</span> na Comunidade
+            </h2>
+            <p className="text-2xl text-gray-600 max-w-5xl mx-auto leading-relaxed">
+              Oferecemos um ecossistema completo de recursos para apoiar o desenvolvimento pessoal e profissional dos
+              jovens, criando oportunidades reais de transformação.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
+            {[
+              {
+                icon: BookOpen,
+                title: "Cursos Técnicos",
+                description:
+                  "Informações sobre cursos técnicos gratuitos e oportunidades de capacitação profissional com certificação reconhecida.",
+                gradient: "from-orange-500 to-orange-600",
+                bgGradient: "from-orange-50 to-orange-100",
+                iconBg: "bg-orange-500",
+              },
+              {
+                icon: Users,
+                title: "Palestras Motivacionais",
+                description:
+                  "Eventos inspiradores e educativos para motivar e orientar nossos jovens em suas jornadas pessoais.",
+                gradient: "from-emerald-500 to-emerald-600",
+                bgGradient: "from-emerald-50 to-emerald-100",
+                iconBg: "bg-emerald-500",
+              },
+              {
+                icon: Heart,
+                title: "Apoio Emocional",
+                description:
+                  "Suporte psicológico especializado e acompanhamento emocional para jovens e suas famílias.",
+                gradient: "from-red-500 to-red-600",
+                bgGradient: "from-red-50 to-red-100",
+                iconBg: "bg-red-500",
+              },
+              {
+                icon: Lightbulb,
+                title: "Empreendedorismo",
+                description:
+                  "Mentoria em empreendedorismo e desenvolvimento de ideias de negócio com foco em inovação social.",
+                gradient: "from-blue-500 to-blue-600",
+                bgGradient: "from-blue-50 to-blue-100",
+                iconBg: "bg-blue-500",
+              },
+            ].map((feature, index) => (
+              <Card
+                key={feature.title}
+                className="group hover-lift border-0 bg-white/95 backdrop-blur-xl hover:bg-white transition-all duration-500 animate-fade-in overflow-hidden rounded-3xl shadow-soft hover:shadow-xl"
+                style={{ animationDelay: `${index * 150}ms` }}
+              >
+                <CardHeader className="text-center pb-8 pt-10">
+                  <div className="relative mx-auto mb-8">
+                    <div
+                      className={`w-24 h-24 rounded-4xl ${feature.iconBg} p-6 shadow-medium group-hover:shadow-xl group-hover:scale-110 transition-all duration-500 relative overflow-hidden`}
+                    >
+                      <feature.icon className="h-12 w-12 text-white relative z-10" />
+                      <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                    </div>
+                    <div
+                      className={`absolute -inset-3 bg-gradient-to-br ${feature.bgGradient} rounded-4xl opacity-0 group-hover:opacity-30 transition-opacity duration-500 -z-10 blur-sm`}
+                    ></div>
+                  </div>
+                  <CardTitle className="text-2xl font-bold text-slate-900 group-hover:text-slate-700 transition-colors duration-300 mb-4">
+                    {feature.title}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="px-8 pb-10">
+                  <CardDescription className="text-gray-600 leading-relaxed text-center group-hover:text-gray-700 transition-colors duration-300 text-base">
+                    {feature.description}
+                  </CardDescription>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Enhanced Stats Section */}
+      <section className="section-padding bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 relative overflow-hidden">
+        <div className="absolute inset-0 bg-grid-pattern opacity-20"></div>
+        <div className="absolute inset-0 bg-gradient-to-r from-orange-500/10 via-transparent to-blue-500/10"></div>
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent"></div>
+
+        <div className="relative z-10 content-width container-padding text-center">
+          <div className="mb-24 animate-fade-in">
+            <Badge className="mb-8 px-8 py-4 bg-gradient-to-r from-orange-500/10 to-orange-600/10 text-orange-300 border border-orange-400/20 backdrop-blur-xl rounded-full">
+              <Star className="mr-3 h-5 w-5" />
+              Nossos Números Falam por Si
+            </Badge>
+            <h2 className="font-bold text-white mb-10">
+              Impacto <span className="text-gradient-orange">Mensurável</span> e Real
+            </h2>
+            <p className="text-2xl text-gray-300 max-w-4xl mx-auto leading-relaxed">
+              Cada número representa uma vida transformada, um sonho realizado e um futuro construído com esperança.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-16 lg:gap-20">
+            {[
+              {
+                number: "500+",
+                label: "Jovens Impactados",
+                description: "Vidas transformadas através dos nossos programas",
+                icon: Users,
+                color: "orange",
+              },
+              {
+                number: "50+",
+                label: "Palestras Realizadas",
+                description: "Eventos que inspiraram e motivaram nossa comunidade",
+                icon: Award,
+                color: "emerald",
+              },
+              {
+                number: "20+",
+                label: "Parcerias Ativas",
+                description: "Organizações que acreditam na nossa missão",
+                icon: Target,
+                color: "blue",
+              },
+            ].map((stat, index) => (
+              <div key={stat.label} className="group animate-fade-in" style={{ animationDelay: `${index * 300}ms` }}>
+                <div className="glass-strong p-10 rounded-4xl hover:bg-white/[0.12] transition-all duration-500 relative overflow-hidden border border-white/10">
+                  <stat.icon
+                    className={`h-16 w-16 text-${stat.color}-400 mx-auto mb-8 group-hover:scale-110 transition-transform duration-500`}
+                  />
+                  <div
+                    className={`text-7xl md:text-8xl font-bold mb-6 text-gradient-${stat.color} group-hover:scale-105 transition-transform duration-500`}
+                  >
+                    {stat.number}
+                  </div>
+                  <div className="text-3xl text-white font-semibold mb-4 group-hover:text-gray-200 transition-colors duration-300">
+                    {stat.label}
+                  </div>
+                  <div className="text-gray-400 leading-relaxed group-hover:text-gray-300 transition-colors duration-300 text-lg">
+                    {stat.description}
+                  </div>
+                  <div
+                    className={`absolute inset-0 bg-gradient-to-br from-${stat.color}-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500`}
+                  ></div>
+                </div>
               </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Enhanced CTA Section */}
+      <section className="section-padding bg-gradient-to-br from-orange-500 via-orange-600 to-orange-700 relative overflow-hidden">
+        <div className="absolute inset-0 bg-dot-pattern opacity-20"></div>
+        <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-yellow-400/10 via-transparent to-red-500/10"></div>
+        <div className="absolute inset-0 bg-gradient-to-t from-orange-700/50 via-transparent to-transparent"></div>
+
+        <div className="relative z-10 content-width container-padding text-center">
+          <div className="animate-fade-in">
+            <Badge className="mb-12 px-8 py-4 bg-white/20 text-white border border-white/30 backdrop-blur-xl rounded-full">
+              <Heart className="mr-3 h-5 w-5" />
+              Junte-se a Nós
+            </Badge>
+            <h2 className="font-bold mb-12 text-white leading-tight">
+              Faça Parte Desta{" "}
+              <span className="relative inline-block">
+                <span className="bg-gradient-to-r from-yellow-200 to-yellow-300 bg-clip-text text-transparent">
+                  Transformação
+                </span>
+                <div className="absolute -inset-2 bg-gradient-to-r from-yellow-300/30 to-yellow-400/30 rounded-2xl blur-xl opacity-50 animate-pulse-slow"></div>
+              </span>
+            </h2>
+            <p className="text-2xl md:text-3xl mb-16 text-orange-100 max-w-5xl mx-auto leading-relaxed">
+              Seja um parceiro, voluntário ou apoiador. Juntos podemos fazer a diferença na vida de muitos jovens e
+              construir um futuro mais justo e próspero para todos.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-8 justify-center items-center">
+              <Link href="/contato">
+                <Button
+                  size="lg"
+                  className="group px-16 py-8 text-xl font-semibold bg-white text-orange-600 hover:bg-gray-50 shadow-xl hover:shadow-2xl transition-all duration-500 rounded-3xl relative overflow-hidden"
+                >
+                  <span className="relative z-10 flex items-center">
+                    Entre em Contato
+                    <ArrowRight className="ml-4 h-6 w-6 group-hover:translate-x-2 transition-transform duration-300" />
+                  </span>
+                  <div className="absolute inset-0 bg-gradient-to-r from-gray-50 to-white opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                </Button>
+              </Link>
+              <Link href="/sobre">
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="group px-16 py-8 text-xl font-semibold text-white border-2 border-white bg-white/10 hover:border-white/90 hover:bg-white/20 backdrop-blur-xl rounded-3xl transition-all duration-500 shadow-medium hover:shadow-xl"
+                >
+                  <span className="flex items-center">
+                    Saiba Mais
+                    <Sparkles className="ml-4 h-6 w-6 group-hover:scale-110 transition-transform duration-300" />
+                  </span>
+                </Button>
+              </Link>
             </div>
           </div>
         </div>
       </section>
+
+      <Footer />
     </div>
   )
 }

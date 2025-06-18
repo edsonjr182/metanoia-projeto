@@ -1,174 +1,131 @@
-import Image from "next/image"
-import { Button } from "@/components/ui/button"
-import Link from "next/link"
-import { Calendar, MapPin, Clock, User } from "lucide-react"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+"use client"
 
-// Dados simulados de palestras
-const palestras = [
-  {
-    id: 1,
-    titulo: "Tecnologia como Ferramenta de Transformação",
-    palestrante: "Ricardo Oliveira",
-    data: "15 de Junho, 2025",
-    horario: "19:00",
-    local: "Centro Cultural da Juventude",
-    endereco: "Av. Dep. Emílio Carlos, 3641 - Vila Nova Cachoeirinha",
-    descricao: "Como a tecnologia pode abrir portas para jovens de comunidades periféricas e transformar realidades.",
-    imagem: "tech-talk",
-  },
-  {
-    id: 2,
-    titulo: "Educação Financeira para Jovens",
-    palestrante: "Amanda Santos",
-    data: "22 de Junho, 2025",
-    horario: "15:00",
-    local: "Biblioteca Municipal",
-    endereco: "Rua da Consolação, 1024 - Consolação",
-    descricao:
-      "Aprenda conceitos básicos de finanças pessoais e como fazer seu dinheiro trabalhar para você desde cedo.",
-    imagem: "finance-talk",
-  },
-  {
-    id: 3,
-    titulo: "Saúde Mental e Autoconhecimento",
-    palestrante: "Dr. Paulo Mendes",
-    data: "30 de Junho, 2025",
-    horario: "18:30",
-    local: "Casa de Cultura M'Boi Mirim",
-    endereco: "Av. Inácio Dias da Silva, 1100 - Jd. São Luís",
-    descricao:
-      "A importância do cuidado com a saúde mental e como o autoconhecimento pode ajudar no desenvolvimento pessoal.",
-    imagem: "mental-health-talk",
-  },
-  {
-    id: 4,
-    titulo: "Empreendedorismo Social",
-    palestrante: "Carla Rodrigues",
-    data: "10 de Julho, 2025",
-    horario: "19:00",
-    local: "Centro Cultural da Penha",
-    endereco: "Largo do Rosário, 20 - Penha de França",
-    descricao: "Como criar negócios que geram impacto positivo na comunidade e transformam realidades sociais.",
-    imagem: "entrepreneurship-talk",
-  },
-]
+import { useEffect, useState } from "react"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Calendar, MapPin, Clock, Users } from "lucide-react"
+import { collection, getDocs, query, orderBy } from "firebase/firestore"
+import { db } from "@/lib/firebase"
+import TopBanner from "@/components/top-banner"
+import Navbar from "@/components/navbar"
+import Footer from "@/components/footer"
+
+interface Palestra {
+  id: string
+  titulo: string
+  descricao: string
+  data: string
+  horario: string
+  local: string
+  palestrante: string
+  vagas: number
+  categoria: string
+}
 
 export default function PalestrasPage() {
+  const [palestras, setPalestras] = useState<Palestra[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchPalestras = async () => {
+      try {
+        const q = query(collection(db, "palestras"), orderBy("data", "asc"))
+        const querySnapshot = await getDocs(q)
+        const palestrasData = querySnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        })) as Palestra[]
+        setPalestras(palestrasData)
+      } catch (error) {
+        console.error("Erro ao buscar palestras:", error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchPalestras()
+  }, [])
+
+  if (loading) {
+    return (
+      <div className="min-h-screen">
+        <TopBanner />
+        <Navbar />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 pt-32">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-orange-500 mx-auto"></div>
+            <p className="mt-4 text-gray-600">Carregando palestras...</p>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    )
+  }
+
   return (
-    <div className="flex flex-col">
-      {/* Hero Section */}
-      <section className="bg-blue-950 py-16 text-white">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="mx-auto max-w-3xl text-center">
-            <h1 className="mb-6 text-4xl font-bold sm:text-5xl">Palestras e Eventos</h1>
-            <p className="text-xl">
-              Confira nossa agenda de palestras inspiradoras e eventos que podem transformar sua perspectiva e abrir
-              novos caminhos.
+    <div className="min-h-screen">
+      <TopBanner />
+      <Navbar />
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 pt-40">
+        <div className="text-center mb-12">
+          <h1 className="text-4xl md:text-5xl font-bold text-slate-900 mb-4">Palestras e Eventos</h1>
+          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+            Participe dos nossos eventos e palestras motivacionais. Momentos de aprendizado, inspiração e networking
+            para transformar sua vida.
+          </p>
+        </div>
+
+        {palestras.length === 0 ? (
+          <div className="text-center py-12">
+            <Users className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-xl font-semibold text-gray-600 mb-2">Nenhuma palestra agendada</h3>
+            <p className="text-gray-500">
+              Novas palestras serão divulgadas em breve. Fique atento às nossas redes sociais!
             </p>
           </div>
-        </div>
-      </section>
-
-      {/* Upcoming Events Section */}
-      <section className="bg-white py-16">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="mx-auto max-w-4xl">
-            <h2 className="mb-8 text-center text-3xl font-bold text-blue-950">Próximas Palestras</h2>
-
-            <div className="grid gap-8 md:grid-cols-2">
-              {palestras.map((palestra) => (
-                <Card key={palestra.id} className="overflow-hidden">
-                  <div className="relative h-48 w-full">
-                    <Image
-                      src={`/abstract-geometric-shapes.png?height=400&width=800&query=${palestra.imagem}`}
-                      alt={palestra.titulo}
-                      fill
-                      className="object-cover"
-                    />
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {palestras.map((palestra) => (
+              <Card key={palestra.id} className="hover:shadow-lg transition-shadow">
+                <CardHeader>
+                  <div className="flex justify-between items-start mb-2">
+                    <Badge variant="secondary" className="bg-orange-100 text-orange-800">
+                      {palestra.categoria}
+                    </Badge>
                   </div>
-                  <CardHeader>
-                    <CardTitle>{palestra.titulo}</CardTitle>
-                    <CardDescription className="flex items-center">
-                      <User className="mr-1 h-4 w-4" /> {palestra.palestrante}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="mb-4 text-gray-700">{palestra.descricao}</p>
-                    <div className="space-y-2 text-sm text-gray-500">
-                      <div className="flex items-center">
-                        <Calendar className="mr-2 h-4 w-4" />
-                        {palestra.data}
-                      </div>
-                      <div className="flex items-center">
-                        <Clock className="mr-2 h-4 w-4" />
-                        {palestra.horario}
-                      </div>
-                      <div className="flex items-center">
-                        <MapPin className="mr-2 h-4 w-4" />
-                        {palestra.local} - {palestra.endereco}
-                      </div>
+                  <CardTitle className="text-xl">{palestra.titulo}</CardTitle>
+                  <CardDescription className="text-sm text-gray-600">Por: {palestra.palestrante}</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-gray-700 mb-4">{palestra.descricao}</p>
+
+                  <div className="space-y-2 text-sm text-gray-600">
+                    <div className="flex items-center">
+                      <Calendar className="h-4 w-4 mr-2 text-orange-500" />
+                      {new Date(palestra.data).toLocaleDateString("pt-BR")}
                     </div>
-                  </CardContent>
-                  <CardFooter>
-                    <Button className="w-full bg-orange-500 hover:bg-orange-600">Inscrever-se</Button>
-                  </CardFooter>
-                </Card>
-              ))}
-            </div>
-
-            <div className="mt-12 text-center">
-              <h3 className="mb-4 text-2xl font-bold text-blue-950">Quer sugerir um tema ou palestrante?</h3>
-              <p className="mb-6 text-gray-700">
-                Estamos sempre abertos a sugestões de temas relevantes para nossa comunidade. Se você conhece alguém que
-                poderia compartilhar conhecimentos valiosos com nossos jovens, entre em contato conosco!
-              </p>
-              <Button asChild className="bg-blue-950 hover:bg-blue-900">
-                <Link href="/contato">Enviar Sugestão</Link>
-              </Button>
-            </div>
+                    <div className="flex items-center">
+                      <Clock className="h-4 w-4 mr-2 text-orange-500" />
+                      {palestra.horario}
+                    </div>
+                    <div className="flex items-center">
+                      <MapPin className="h-4 w-4 mr-2 text-orange-500" />
+                      {palestra.local}
+                    </div>
+                    <div className="flex items-center">
+                      <Users className="h-4 w-4 mr-2 text-orange-500" />
+                      {palestra.vagas} vagas disponíveis
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
           </div>
-        </div>
-      </section>
+        )}
+      </div>
 
-      {/* Past Events Section */}
-      <section className="bg-gray-50 py-16">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="mx-auto max-w-4xl">
-            <h2 className="mb-8 text-center text-3xl font-bold text-blue-950">Palestras Anteriores</h2>
-
-            <div className="grid gap-6">
-              <div className="rounded-lg bg-white p-6 shadow-sm">
-                <h3 className="mb-2 text-xl font-semibold text-blue-950">Carreiras do Futuro</h3>
-                <p className="mb-2 text-gray-500">Maio 2025 | Ana Luiza Martins</p>
-                <p className="text-gray-700">
-                  Palestra sobre as profissões em alta no mercado e como se preparar para elas.
-                </p>
-              </div>
-
-              <div className="rounded-lg bg-white p-6 shadow-sm">
-                <h3 className="mb-2 text-xl font-semibold text-blue-950">Comunicação e Oratória</h3>
-                <p className="mb-2 text-gray-500">Abril 2025 | Carlos Eduardo Silva</p>
-                <p className="text-gray-700">
-                  Como desenvolver habilidades de comunicação eficaz e perder o medo de falar em público.
-                </p>
-              </div>
-
-              <div className="rounded-lg bg-white p-6 shadow-sm">
-                <h3 className="mb-2 text-xl font-semibold text-blue-950">Criatividade e Inovação</h3>
-                <p className="mb-2 text-gray-500">Março 2025 | Fernanda Costa</p>
-                <p className="text-gray-700">
-                  Como despertar seu potencial criativo e aplicá-lo em soluções inovadoras.
-                </p>
-              </div>
-            </div>
-
-            <div className="mt-8 text-center">
-              <Button variant="outline">Ver Todas as Palestras Anteriores</Button>
-            </div>
-          </div>
-        </div>
-      </section>
+      <Footer />
     </div>
   )
 }

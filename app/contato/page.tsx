@@ -1,123 +1,262 @@
-import Image from "next/image"
+"use client"
+
+import type React from "react"
+
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import ContactForm from "@/components/contact-form"
-import { Mail, Phone, MapPin, Clock } from "lucide-react"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import { Mail, MapPin, Send, MessageCircle } from "lucide-react"
+import { collection, addDoc } from "firebase/firestore"
+import { db } from "@/lib/firebase"
+import Navbar from "@/components/navbar"
+import Footer from "@/components/footer"
+import TopBanner from "@/components/top-banner"
+import { useConfiguracoes } from "@/hooks/use-configuracoes"
 
 export default function ContatoPage() {
+  const { configuracoes, loading: configLoading } = useConfiguracoes()
+  const [formData, setFormData] = useState({
+    nome: "",
+    email: "",
+    telefone: "",
+    assunto: "",
+    mensagem: "",
+  })
+  const [loading, setLoading] = useState(false)
+  const [success, setSuccess] = useState(false)
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
+
+    try {
+      await addDoc(collection(db, "contatos"), {
+        ...formData,
+        data: new Date().toISOString(),
+        status: "novo",
+      })
+
+      setSuccess(true)
+      setFormData({
+        nome: "",
+        email: "",
+        telefone: "",
+        assunto: "",
+        mensagem: "",
+      })
+    } catch (error) {
+      console.error("Erro ao enviar mensagem:", error)
+      alert("Erro ao enviar mensagem. Tente novamente.")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    })
+  }
+
+  const formatWhatsApp = (telefone: string) => {
+    // Remove caracteres especiais e espaços
+    const cleanPhone = telefone.replace(/\D/g, "")
+    return `https://wa.me/55${cleanPhone}`
+  }
+
   return (
-    <div className="flex flex-col">
-      {/* Hero Section */}
-      <section className="bg-blue-950 py-16 text-white">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="mx-auto max-w-3xl text-center">
-            <h1 className="mb-6 text-4xl font-bold sm:text-5xl">Entre em Contato</h1>
-            <p className="text-xl">
-              Estamos aqui para responder suas dúvidas, receber sugestões ou estabelecer parcerias.
-            </p>
-          </div>
+    <div className="min-h-screen">
+      <TopBanner />
+      <Navbar />
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 pt-40">
+        <div className="text-center mb-12">
+          <h1 className="text-4xl md:text-5xl font-bold text-slate-900 mb-4">Entre em Contato</h1>
+          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+            Tem alguma dúvida, sugestão ou quer ser nosso parceiro? Estamos aqui para ouvir você e construir juntos um
+            futuro melhor.
+          </p>
         </div>
-      </section>
 
-      {/* Contact Section */}
-      <section className="bg-white py-16">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="mx-auto max-w-4xl">
-            <div className="mb-16 grid gap-8 md:grid-cols-2">
-              <div>
-                <h2 className="mb-6 text-3xl font-bold text-blue-950">Fale Conosco</h2>
-                <p className="mb-8 text-gray-700">
-                  Tem dúvidas sobre o Projeto Metanoia? Quer participar das nossas atividades ou se tornar um parceiro?
-                  Entre em contato conosco pelos canais abaixo ou preencha o formulário.
-                </p>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+          {/* Informações de Contato */}
+          <div>
+            <h2 className="text-2xl font-bold text-slate-900 mb-6">Fale Conosco</h2>
 
+            <div className="space-y-6">
+              {configLoading ? (
+                // Loading skeleton
                 <div className="space-y-6">
-                  <div className="flex items-start">
-                    <Mail className="mr-4 h-6 w-6 text-orange-500" />
-                    <div>
-                      <h3 className="text-lg font-semibold text-blue-950">Email</h3>
-                      <p className="text-gray-700">contato@projetometanoia.org.br</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start">
-                    <Phone className="mr-4 h-6 w-6 text-orange-500" />
-                    <div>
-                      <h3 className="text-lg font-semibold text-blue-950">Telefone</h3>
-                      <p className="text-gray-700">(11) 99999-9999</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start">
-                    <MapPin className="mr-4 h-6 w-6 text-orange-500" />
-                    <div>
-                      <h3 className="text-lg font-semibold text-blue-950">Endereço</h3>
-                      <p className="text-gray-700">
-                        Rua Exemplo, 123 - Bairro
-                        <br />
-                        São Paulo, SP - CEP 00000-000
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start">
-                    <Clock className="mr-4 h-6 w-6 text-orange-500" />
-                    <div>
-                      <h3 className="text-lg font-semibold text-blue-950">Horário de Atendimento</h3>
-                      <p className="text-gray-700">
-                        Segunda a Sexta: 9h às 18h
-                        <br />
-                        Sábados: 9h às 13h
-                      </p>
-                    </div>
-                  </div>
+                  {[1, 2, 3].map((i) => (
+                    <Card key={i}>
+                      <CardContent className="p-6">
+                        <div className="flex items-center space-x-4">
+                          <div className="w-8 h-8 bg-gray-200 rounded animate-pulse"></div>
+                          <div className="flex-1">
+                            <div className="h-4 bg-gray-200 rounded w-1/4 mb-2 animate-pulse"></div>
+                            <div className="h-3 bg-gray-200 rounded w-1/2 animate-pulse"></div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
                 </div>
-              </div>
+              ) : (
+                <>
+                  <Card className="hover:shadow-lg transition-shadow duration-300">
+                    <CardContent className="p-6">
+                      <div className="flex items-center space-x-4">
+                        <div className="p-3 rounded-2xl bg-orange-100 group-hover:bg-orange-200 transition-colors duration-200">
+                          <Mail className="h-8 w-8 text-orange-500" />
+                        </div>
+                        <div>
+                          <h3 className="font-semibold text-lg">Email</h3>
+                          <a
+                            href={`mailto:${configuracoes.contato.email}`}
+                            className="text-gray-600 hover:text-orange-600 transition-colors duration-200 text-lg"
+                          >
+                            {configuracoes.contato.email}
+                          </a>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
 
-              <div className="rounded-lg bg-gray-50 p-6 shadow-sm">
-                <h2 className="mb-6 text-2xl font-bold text-blue-950">Envie uma Mensagem</h2>
-                <ContactForm />
-              </div>
+                  <Card className="hover:shadow-lg transition-shadow duration-300">
+                    <CardContent className="p-6">
+                      <div className="flex items-center space-x-4">
+                        <div className="p-3 rounded-2xl bg-green-100 group-hover:bg-green-200 transition-colors duration-200">
+                          <MessageCircle className="h-8 w-8 text-green-500" />
+                        </div>
+                        <div>
+                          <h3 className="font-semibold text-lg">WhatsApp</h3>
+                          <a
+                            href={formatWhatsApp(configuracoes.contato.telefone)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-gray-600 hover:text-green-600 transition-colors duration-200 text-lg"
+                          >
+                            {configuracoes.contato.telefone}
+                          </a>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="hover:shadow-lg transition-shadow duration-300">
+                    <CardContent className="p-6">
+                      <div className="flex items-center space-x-4">
+                        <div className="p-3 rounded-2xl bg-blue-100 group-hover:bg-blue-200 transition-colors duration-200">
+                          <MapPin className="h-8 w-8 text-blue-500" />
+                        </div>
+                        <div>
+                          <h3 className="font-semibold text-lg">Localização</h3>
+                          <p className="text-gray-600 text-lg">{configuracoes.contato.localizacao}</p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </>
+              )}
             </div>
 
-            {/* Map Section */}
-            <div className="mb-16">
-              <h2 className="mb-6 text-center text-3xl font-bold text-blue-950">Nossa Localização</h2>
-              <div className="relative h-96 w-full overflow-hidden rounded-lg">
-                <Image src="/sao-paulo-map.png" alt="Mapa de localização" fill className="object-cover" />
-              </div>
-            </div>
-
-            {/* Partnership Section */}
-            <div>
-              <h2 className="mb-8 text-center text-3xl font-bold text-blue-950">Seja um Parceiro</h2>
-              <div className="rounded-lg bg-orange-50 p-8">
-                <div className="grid gap-8 md:grid-cols-2 md:items-center">
-                  <div>
-                    <h3 className="mb-4 text-2xl font-bold text-blue-950">Como Apoiar o Projeto</h3>
-                    <p className="mb-4 text-gray-700">
-                      O Projeto Metanoia conta com o apoio de empresas, instituições e voluntários para ampliar seu
-                      impacto e transformar a vida de mais jovens.
-                    </p>
-                    <p className="mb-6 text-gray-700">Existem diversas formas de contribuir:</p>
-                    <ul className="mb-6 list-inside list-disc space-y-2 text-gray-700">
-                      <li>Patrocínio financeiro para atividades e eventos</li>
-                      <li>Doação de materiais e equipamentos</li>
-                      <li>Cessão de espaços para atividades</li>
-                      <li>Voluntariado corporativo</li>
-                      <li>Mentoria para jovens</li>
-                      <li>Oferta de vagas de estágio ou emprego</li>
-                    </ul>
-                    <Button className="bg-blue-950 hover:bg-blue-900">Quero Ser Parceiro</Button>
-                  </div>
-                  <div className="relative h-64 w-full overflow-hidden rounded-lg md:h-80">
-                    <Image src="/business-partnership-handshake.png" alt="Parceria empresarial" fill className="object-cover" />
-                  </div>
-                </div>
-              </div>
+            <div className="mt-8">
+              <h3 className="text-xl font-semibold text-slate-900 mb-4">Como Você Pode Ajudar</h3>
+              <ul className="space-y-2 text-gray-600">
+                <li>• Seja um voluntário em nossas atividades</li>
+                <li>• Ofereça palestras ou workshops</li>
+                <li>• Divulgue nosso trabalho em suas redes</li>
+                <li>• Conecte-nos com outras organizações</li>
+                <li>• Contribua com recursos ou materiais</li>
+              </ul>
             </div>
           </div>
+
+          {/* Formulário de Contato */}
+          <div>
+            <Card>
+              <CardHeader>
+                <CardTitle>Envie sua Mensagem</CardTitle>
+                <CardDescription>
+                  Preencha o formulário abaixo e entraremos em contato o mais breve possível.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {success ? (
+                  <div className="text-center py-8">
+                    <div className="bg-green-100 text-green-800 p-4 rounded-lg mb-4">
+                      <h3 className="font-semibold mb-2">Mensagem Enviada!</h3>
+                      <p>Obrigado pelo contato. Responderemos em breve.</p>
+                    </div>
+                    <Button onClick={() => setSuccess(false)} variant="outline">
+                      Enviar Nova Mensagem
+                    </Button>
+                  </div>
+                ) : (
+                  <form onSubmit={handleSubmit} className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="nome">Nome *</Label>
+                        <Input id="nome" name="nome" value={formData.nome} onChange={handleChange} required />
+                      </div>
+                      <div>
+                        <Label htmlFor="telefone">Telefone</Label>
+                        <Input id="telefone" name="telefone" value={formData.telefone} onChange={handleChange} />
+                      </div>
+                    </div>
+
+                    <div>
+                      <Label htmlFor="email">Email *</Label>
+                      <Input
+                        id="email"
+                        name="email"
+                        type="email"
+                        value={formData.email}
+                        onChange={handleChange}
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <Label htmlFor="assunto">Assunto *</Label>
+                      <Input id="assunto" name="assunto" value={formData.assunto} onChange={handleChange} required />
+                    </div>
+
+                    <div>
+                      <Label htmlFor="mensagem">Mensagem *</Label>
+                      <Textarea
+                        id="mensagem"
+                        name="mensagem"
+                        rows={5}
+                        value={formData.mensagem}
+                        onChange={handleChange}
+                        required
+                      />
+                    </div>
+
+                    <Button type="submit" className="w-full" disabled={loading}>
+                      {loading ? (
+                        "Enviando..."
+                      ) : (
+                        <>
+                          Enviar Mensagem
+                          <Send className="ml-2 h-4 w-4" />
+                        </>
+                      )}
+                    </Button>
+                  </form>
+                )}
+              </CardContent>
+            </Card>
+          </div>
         </div>
-      </section>
+      </div>
+
+      <Footer />
     </div>
   )
 }
