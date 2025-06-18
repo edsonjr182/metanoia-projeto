@@ -23,6 +23,11 @@ interface Curso {
   gratuito: boolean
 }
 
+const getYouTubeEmbedUrl = (url: string) => {
+  const videoId = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/)
+  return videoId ? `https://www.youtube.com/embed/${videoId[1]}` : null
+}
+
 export default function CursosPage() {
   const [cursos, setCursos] = useState<Curso[]>([])
   const [loading, setLoading] = useState(true)
@@ -86,7 +91,7 @@ export default function CursosPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {cursos.map((curso) => (
-              <Card key={curso.id} className="hover:shadow-lg transition-shadow">
+              <Card key={curso.id} className="hover:shadow-lg transition-shadow overflow-hidden">
                 <CardHeader>
                   <div className="flex justify-between items-start mb-2">
                     <Badge variant="secondary" className="bg-blue-100 text-blue-800">
@@ -98,6 +103,19 @@ export default function CursosPage() {
                   <CardDescription className="text-sm text-gray-600">{curso.instituicao}</CardDescription>
                 </CardHeader>
                 <CardContent>
+                  {curso.link && getYouTubeEmbedUrl(curso.link) && (
+                    <div className="mb-4">
+                      <div className="aspect-video rounded-lg overflow-hidden bg-gray-100">
+                        <iframe
+                          src={getYouTubeEmbedUrl(curso.link)}
+                          title={curso.nome}
+                          className="w-full h-full"
+                          allowFullScreen
+                        />
+                      </div>
+                    </div>
+                  )}
+
                   <p className="text-gray-700 mb-4">{curso.descricao}</p>
 
                   <div className="space-y-2 text-sm text-gray-600 mb-4">
