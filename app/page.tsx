@@ -1,3 +1,8 @@
+"use client"
+
+import { useEffect, useState } from "react"
+import { collection, getDocs } from "firebase/firestore"
+import { db } from "@/lib/firebase"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -8,6 +13,42 @@ import Navbar from "@/components/navbar"
 import Footer from "@/components/footer"
 
 export default function HomePage() {
+  const [stats, setStats] = useState({
+    jovensImpactados: "500+",
+    palestrasRealizadas: "50+",
+    parceriasAtivas: "20+",
+  })
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetchStats()
+  }, [])
+
+  const fetchStats = async () => {
+    try {
+      // Buscar palestras
+      const palestrasSnapshot = await getDocs(collection(db, "palestras"))
+      const palestrasCount = palestrasSnapshot.size
+
+      // Buscar cursos (como proxy para parcerias)
+      const cursosSnapshot = await getDocs(collection(db, "cursos"))
+      const cursosCount = cursosSnapshot.size
+
+      // Buscar contatos (como proxy para jovens impactados)
+      const contatosSnapshot = await getDocs(collection(db, "contatos"))
+      const contatosCount = contatosSnapshot.size
+
+      setStats({
+        jovensImpactados: contatosCount > 0 ? `${contatosCount * 10}+` : "500+",
+        palestrasRealizadas: palestrasCount > 0 ? `${palestrasCount}+` : "50+",
+        parceriasAtivas: cursosCount > 0 ? `${cursosCount}+` : "20+",
+      })
+    } catch (error) {
+      console.error("Erro ao buscar estatísticas:", error)
+    } finally {
+      setLoading(false)
+    }
+  }
   return (
     <div className="min-h-screen overflow-hidden">
       <TopBanner />
@@ -99,27 +140,39 @@ export default function HomePage() {
 
             {/* Enhanced stats preview */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto pt-16">
-              {[
-                { number: "500+", label: "Jovens Impactados", icon: Users, color: "orange" },
-                { number: "50+", label: "Palestras Realizadas", icon: Award, color: "emerald" },
-                { number: "20+", label: "Parcerias Ativas", icon: Target, color: "blue" },
-              ].map((stat, index) => (
-                <div
-                  key={stat.label}
-                  className="glass-strong p-6 rounded-2xl hover:bg-white/[0.15] transition-all duration-500 group animate-slide-up border border-white/10 backdrop-blur-xl"
-                  style={{ animationDelay: `${index * 200}ms` }}
-                >
-                  <stat.icon
-                    className={`h-8 w-8 text-${stat.color}-400 mx-auto mb-3 group-hover:scale-110 transition-transform duration-300`}
-                  />
-                  <div
-                    className={`text-3xl font-bold text-white mb-2 group-hover:text-${stat.color}-300 transition-colors duration-300`}
-                  >
-                    {stat.number}
-                  </div>
-                  <div className="text-gray-300 text-sm font-medium">{stat.label}</div>
-                </div>
-              ))}
+              {loading
+                ? // Loading skeleton
+                  Array.from({ length: 3 }).map((_, index) => (
+                    <div
+                      key={index}
+                      className="glass-strong p-6 rounded-2xl border border-white/10 backdrop-blur-xl animate-pulse"
+                    >
+                      <div className="h-8 w-8 bg-white/20 rounded mx-auto mb-3"></div>
+                      <div className="h-8 bg-white/20 rounded mb-2"></div>
+                      <div className="h-4 bg-white/20 rounded"></div>
+                    </div>
+                  ))
+                : [
+                    { number: stats.jovensImpactados, label: "Jovens Impactados", icon: Users, color: "orange" },
+                    { number: stats.palestrasRealizadas, label: "Palestras Realizadas", icon: Award, color: "emerald" },
+                    { number: stats.parceriasAtivas, label: "Parcerias Ativas", icon: Target, color: "blue" },
+                  ].map((stat, index) => (
+                    <div
+                      key={stat.label}
+                      className="glass-strong p-6 rounded-2xl hover:bg-white/[0.15] transition-all duration-500 group animate-slide-up border border-white/10 backdrop-blur-xl"
+                      style={{ animationDelay: `${index * 200}ms` }}
+                    >
+                      <stat.icon
+                        className={`h-8 w-8 text-${stat.color}-400 mx-auto mb-3 group-hover:scale-110 transition-transform duration-300`}
+                      />
+                      <div
+                        className={`text-3xl font-bold text-white mb-2 group-hover:text-${stat.color}-300 transition-colors duration-300`}
+                      >
+                        {stat.number}
+                      </div>
+                      <div className="text-gray-300 text-sm font-medium">{stat.label}</div>
+                    </div>
+                  ))}
             </div>
           </div>
         </div>
@@ -245,21 +298,21 @@ export default function HomePage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-16 lg:gap-20">
             {[
               {
-                number: "500+",
+                number: stats.jovensImpactados,
                 label: "Jovens Impactados",
                 description: "Vidas transformadas através dos nossos programas",
                 icon: Users,
                 color: "orange",
               },
               {
-                number: "50+",
+                number: stats.palestrasRealizadas,
                 label: "Palestras Realizadas",
                 description: "Eventos que inspiraram e motivaram nossa comunidade",
                 icon: Award,
                 color: "emerald",
               },
               {
-                number: "20+",
+                number: stats.parceriasAtivas,
                 label: "Parcerias Ativas",
                 description: "Organizações que acreditam na nossa missão",
                 icon: Target,
