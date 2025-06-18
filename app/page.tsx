@@ -6,7 +6,7 @@ import { db } from "@/lib/firebase"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Heart, Users, BookOpen, Lightbulb, ArrowRight, Star, Sparkles, TrendingUp, Award, Target } from "lucide-react"
+import { Heart, Users, BookOpen, Lightbulb, ArrowRight, Sparkles, TrendingUp } from "lucide-react"
 import Link from "next/link"
 import TopBanner from "@/components/top-banner"
 import Navbar from "@/components/navbar"
@@ -111,7 +111,7 @@ export default function HomePage() {
               voltarem a sonhar com o futuro.
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-6 justify-center items-center pt-8">
+            <div className="flex flex-col sm:flex-row gap-6 justify-center items-center pt-8 pb-16">
               <Link href="/sobre">
                 <Button
                   size="lg"
@@ -136,43 +136,6 @@ export default function HomePage() {
                   </span>
                 </Button>
               </Link>
-            </div>
-
-            {/* Enhanced stats preview */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto pt-16">
-              {loading
-                ? // Loading skeleton
-                  Array.from({ length: 3 }).map((_, index) => (
-                    <div
-                      key={index}
-                      className="glass-strong p-6 rounded-2xl border border-white/10 backdrop-blur-xl animate-pulse"
-                    >
-                      <div className="h-8 w-8 bg-white/20 rounded mx-auto mb-3"></div>
-                      <div className="h-8 bg-white/20 rounded mb-2"></div>
-                      <div className="h-4 bg-white/20 rounded"></div>
-                    </div>
-                  ))
-                : [
-                    { number: stats.jovensImpactados, label: "Jovens Impactados", icon: Users, color: "orange" },
-                    { number: stats.palestrasRealizadas, label: "Palestras Realizadas", icon: Award, color: "emerald" },
-                    { number: stats.parceriasAtivas, label: "Parcerias Ativas", icon: Target, color: "blue" },
-                  ].map((stat, index) => (
-                    <div
-                      key={stat.label}
-                      className="glass-strong p-6 rounded-2xl hover:bg-white/[0.15] transition-all duration-500 group animate-slide-up border border-white/10 backdrop-blur-xl"
-                      style={{ animationDelay: `${index * 200}ms` }}
-                    >
-                      <stat.icon
-                        className={`h-8 w-8 text-${stat.color}-400 mx-auto mb-3 group-hover:scale-110 transition-transform duration-300`}
-                      />
-                      <div
-                        className={`text-3xl font-bold text-white mb-2 group-hover:text-${stat.color}-300 transition-colors duration-300`}
-                      >
-                        {stat.number}
-                      </div>
-                      <div className="text-gray-300 text-sm font-medium">{stat.label}</div>
-                    </div>
-                  ))}
             </div>
           </div>
         </div>
@@ -270,76 +233,6 @@ export default function HomePage() {
                   </CardDescription>
                 </CardContent>
               </Card>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Enhanced Stats Section */}
-      <section className="section-padding bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 relative overflow-hidden">
-        <div className="absolute inset-0 bg-grid-pattern opacity-20"></div>
-        <div className="absolute inset-0 bg-gradient-to-r from-orange-500/10 via-transparent to-blue-500/10"></div>
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent"></div>
-
-        <div className="relative z-10 content-width container-padding text-center">
-          <div className="mb-24 animate-fade-in">
-            <Badge className="mb-8 px-8 py-4 bg-gradient-to-r from-orange-500/10 to-orange-600/10 text-orange-300 border border-orange-400/20 backdrop-blur-xl rounded-full">
-              <Star className="mr-3 h-5 w-5" />
-              Nossos Números Falam por Si
-            </Badge>
-            <h2 className="font-bold text-white mb-10">
-              Impacto <span className="text-gradient-orange">Mensurável</span> e Real
-            </h2>
-            <p className="text-2xl text-gray-300 max-w-4xl mx-auto leading-relaxed">
-              Cada número representa uma vida transformada, um sonho realizado e um futuro construído com esperança.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-16 lg:gap-20">
-            {[
-              {
-                number: stats.jovensImpactados,
-                label: "Jovens Impactados",
-                description: "Vidas transformadas através dos nossos programas",
-                icon: Users,
-                color: "orange",
-              },
-              {
-                number: stats.palestrasRealizadas,
-                label: "Palestras Realizadas",
-                description: "Eventos que inspiraram e motivaram nossa comunidade",
-                icon: Award,
-                color: "emerald",
-              },
-              {
-                number: stats.parceriasAtivas,
-                label: "Parcerias Ativas",
-                description: "Organizações que acreditam na nossa missão",
-                icon: Target,
-                color: "blue",
-              },
-            ].map((stat, index) => (
-              <div key={stat.label} className="group animate-fade-in" style={{ animationDelay: `${index * 300}ms` }}>
-                <div className="glass-strong p-10 rounded-4xl hover:bg-white/[0.12] transition-all duration-500 relative overflow-hidden border border-white/10">
-                  <stat.icon
-                    className={`h-16 w-16 text-${stat.color}-400 mx-auto mb-8 group-hover:scale-110 transition-transform duration-500`}
-                  />
-                  <div
-                    className={`text-7xl md:text-8xl font-bold mb-6 text-gradient-${stat.color} group-hover:scale-105 transition-transform duration-500`}
-                  >
-                    {stat.number}
-                  </div>
-                  <div className="text-3xl text-white font-semibold mb-4 group-hover:text-gray-200 transition-colors duration-300">
-                    {stat.label}
-                  </div>
-                  <div className="text-gray-400 leading-relaxed group-hover:text-gray-300 transition-colors duration-300 text-lg">
-                    {stat.description}
-                  </div>
-                  <div
-                    className={`absolute inset-0 bg-gradient-to-br from-${stat.color}-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500`}
-                  ></div>
-                </div>
-              </div>
             ))}
           </div>
         </div>
