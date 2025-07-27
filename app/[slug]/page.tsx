@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation"
-import { collection, query, where, getDocs } from "firebase/firestore"
 import { db } from "@/lib/firebase"
+import { collection, query, where, getDocs } from "firebase/firestore"
 import LandingPageClient from "./landing-page-client"
 
 interface LandingPageData {
@@ -11,14 +11,15 @@ interface LandingPageData {
   primaryColor: string
   secondaryColor: string
   sections: any[]
-  formFields: any[]
+  formFields: string[]
   thankYouMessage: string
-  active: boolean
+  isActive: boolean
 }
 
 async function getLandingPage(slug: string): Promise<LandingPageData | null> {
   try {
-    const q = query(collection(db, "landingPages"), where("slug", "==", slug), where("active", "==", true))
+    const q = query(collection(db, "landingPages"), where("slug", "==", slug), where("isActive", "==", true))
+
     const querySnapshot = await getDocs(q)
 
     if (querySnapshot.empty) {

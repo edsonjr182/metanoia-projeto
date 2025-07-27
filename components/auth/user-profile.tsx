@@ -1,98 +1,20 @@
 "use client"
 
 import { useState } from "react"
-import type React from "react"
-import { useAuth } from "@/contexts/auth-context"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { User, Mail, Calendar, Shield, AlertCircle, CheckCircle, LogOut } from "lucide-react"
-import { updateProfile, updatePassword } from "firebase/auth"
+import { Badge } from "@/components/ui/badge"
+import { Separator } from "@/components/ui/separator"
+import { User, Mail, Calendar, Shield, Edit2, Save, X } from "lucide-react"
+import { useAuth } from "@/contexts/auth-context"
 
 export function UserProfile() {
-  const { user, logout } = useAuth()
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState("")
-  const [success, setSuccess] = useState("")
-  const [profileData, setProfileData] = useState({
-    displayName: user?.displayName || "",
-  })
-  const [passwordData, setPasswordData] = useState({
-    currentPassword: "",
-    newPassword: "",
-    confirmPassword: "",
-  })
-
-  const handleProfileUpdate = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!user) return
-
-    try {
-      setLoading(true)
-      setError("")
-      setSuccess("")
-
-      await updateProfile(user, {
-        displayName: profileData.displayName,
-      })
-
-      setSuccess("Perfil atualizado com sucesso!")
-    } catch (error: any) {
-      setError("Erro ao atualizar perfil")
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const handlePasswordUpdate = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!user) return
-
-    if (passwordData.newPassword !== passwordData.confirmPassword) {
-      setError("As senhas não coincidem")
-      return
-    }
-
-    if (passwordData.newPassword.length < 6) {
-      setError("A nova senha deve ter pelo menos 6 caracteres")
-      return
-    }
-
-    try {
-      setLoading(true)
-      setError("")
-      setSuccess("")
-
-      await updatePassword(user, passwordData.newPassword)
-      setSuccess("Senha atualizada com sucesso!")
-      setPasswordData({
-        currentPassword: "",
-        newPassword: "",
-        confirmPassword: "",
-      })
-    } catch (error: any) {
-      if (error.code === "auth/requires-recent-login") {
-        setError("Por segurança, faça login novamente para alterar a senha")
-      } else {
-        setError("Erro ao atualizar senha")
-      }
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const handleLogout = async () => {
-    try {
-      await logout()
-    } catch (error) {
-      console.error("Erro ao fazer logout:", error)
-    }
-  }
-
-  if (!user) return null
+  const { user } = useAuth()
+  const [isEditing, setIsEditing] = useState(false)
+  const [displayName, setDisplayName] = useState(user?.displayName || "")
 
   const getInitials = (name: string) => {
     return name
@@ -103,155 +25,157 @@ export function UserProfile() {
       .slice(0, 2)
   }
 
-  const isEmailUser = user.providerData.some((provider) => provider.providerId === "password")
-  const isGoogleUser = user.providerData.some((provider) => provider.providerId === "google.com")
+  const handleSave = () => {
+    // Aqui você implementaria a lógica para salvar as alterações
+    setIsEditing(false)
+  }
+
+  const handleCancel = () => {
+    setDisplayName(user?.displayName || "")
+    setIsEditing(false)
+  }
+
+  if (!user) {
+    return (
+      <Card>
+        <CardContent className="p-6">
+          <p className="text-center text-gray-500">Usuário não encontrado</p>
+        </CardContent>
+      </Card>
+    )
+  }
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
-      <div className="flex items-center space-x-3 mb-6">
-        <Avatar>
-          <AvatarImage src={user.photoURL || ""} alt={user.displayName || ""} />
-          <AvatarFallback className="text-lg">
-            {user.displayName ? getInitials(user.displayName) : <User className="h-4 w-4" />}
-          </AvatarFallback>
-        </Avatar>
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium text-gray-900 truncate">{user.email}</p>
-          <p className="text-xs text-gray-500">Administrador</p>
+    <Card className="w-full max-w-2xl">
+      <CardHeader className="pb-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle className="text-2xl">Perfil do Usuário</CardTitle>
+            <CardDescription>Gerencie suas informações pessoais</CardDescription>
+          </div>
+          <Badge variant="secondary" className="bg-orange-100 text-orange-700">
+            <Shield className="w-4 h-4 mr-1" />
+            Administrador
+          </Badge>
         </div>
-        <Button variant="ghost" size="sm" onClick={handleLogout}>
-          <LogOut className="h-4 w-4" />
-        </Button>
-      </div>
+      </CardHeader>
 
-      {error && (
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      )}
-
-      {success && (
-        <Alert className="border-green-200 bg-green-50">
-          <CheckCircle className="h-4 w-4 text-green-600" />
-          <AlertDescription className="text-green-800">{success}</AlertDescription>
-        </Alert>
-      )}
-
-      {/* Informações do Usuário */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center">
-            <User className="h-5 w-5 mr-2" />
-            Informações Pessoais
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center space-x-4 mb-6">
-            <Avatar className="h-16 w-16">
-              <AvatarImage src={user.photoURL || ""} alt={user.displayName || ""} />
-              <AvatarFallback className="text-lg">
-                {user.displayName ? getInitials(user.displayName) : <User className="h-8 w-8" />}
-              </AvatarFallback>
-            </Avatar>
-            <div>
-              <h3 className="text-lg font-semibold">{user.displayName || "Usuário"}</h3>
-              <p className="text-gray-600 flex items-center">
-                <Mail className="h-4 w-4 mr-1" />
-                {user.email}
-              </p>
-              <p className="text-sm text-gray-500 flex items-center mt-1">
-                <Calendar className="h-4 w-4 mr-1" />
-                Membro desde {new Date(user.metadata.creationTime!).toLocaleDateString("pt-BR")}
-              </p>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-            <div className="flex items-center p-3 bg-gray-50 rounded-lg">
-              <Shield className="h-4 w-4 mr-2 text-green-500" />
-              <div>
-                <p className="font-medium">Status da Conta</p>
-                <p className="text-gray-600">{user.emailVerified ? "Verificada" : "Não verificada"}</p>
-              </div>
-            </div>
-            <div className="flex items-center p-3 bg-gray-50 rounded-lg">
-              <User className="h-4 w-4 mr-2 text-blue-500" />
-              <div>
-                <p className="font-medium">Método de Login</p>
-                <p className="text-gray-600">
-                  {isGoogleUser && "Google"}
-                  {isEmailUser && "Email"}
-                  {isGoogleUser && isEmailUser && "Google + Email"}
-                </p>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Atualizar Perfil */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Atualizar Perfil</CardTitle>
-          <CardDescription>Altere suas informações pessoais</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleProfileUpdate} className="space-y-4">
-            <div>
-              <Label htmlFor="displayName">Nome de exibição</Label>
-              <Input
-                id="displayName"
-                value={profileData.displayName}
-                onChange={(e) => setProfileData({ ...profileData, displayName: e.target.value })}
-                placeholder="Seu nome completo"
-              />
-            </div>
-            <Button type="submit" disabled={loading}>
-              {loading ? "Salvando..." : "Salvar alterações"}
+      <CardContent className="space-y-6">
+        {/* Avatar Section */}
+        <div className="flex items-center space-x-6">
+          <Avatar className="w-24 h-24 ring-4 ring-orange-100">
+            <AvatarImage src={user.photoURL || ""} alt={user.displayName || ""} />
+            <AvatarFallback className="bg-gradient-to-br from-orange-400 to-orange-600 text-white text-2xl font-bold">
+              {user.displayName ? getInitials(user.displayName) : <User className="w-8 h-8" />}
+            </AvatarFallback>
+          </Avatar>
+          <div className="flex-1">
+            <h3 className="text-xl font-semibold text-gray-900">{user.displayName || "Usuário"}</h3>
+            <p className="text-gray-500">{user.email}</p>
+            <Button variant="outline" size="sm" className="mt-2 bg-transparent">
+              Alterar Foto
             </Button>
-          </form>
-        </CardContent>
-      </Card>
+          </div>
+        </div>
 
-      {/* Alterar Senha (apenas para usuários de email) */}
-      {isEmailUser && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Alterar Senha</CardTitle>
-            <CardDescription>Mantenha sua conta segura com uma senha forte</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handlePasswordUpdate} className="space-y-4">
-              <div>
-                <Label htmlFor="newPassword">Nova senha</Label>
-                <Input
-                  id="newPassword"
-                  type="password"
-                  value={passwordData.newPassword}
-                  onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
-                  minLength={6}
-                />
-              </div>
-              <div>
-                <Label htmlFor="confirmPassword">Confirmar nova senha</Label>
-                <Input
-                  id="confirmPassword"
-                  type="password"
-                  value={passwordData.confirmPassword}
-                  onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
-                  minLength={6}
-                />
-              </div>
-              <Button type="submit" disabled={loading}>
-                {loading ? "Alterando..." : "Alterar senha"}
+        <Separator />
+
+        {/* Profile Information */}
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h4 className="text-lg font-medium">Informações Pessoais</h4>
+            {!isEditing ? (
+              <Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
+                <Edit2 className="w-4 h-4 mr-2" />
+                Editar
               </Button>
-            </form>
-          </CardContent>
-        </Card>
-      )}
-    </div>
+            ) : (
+              <div className="flex space-x-2">
+                <Button variant="outline" size="sm" onClick={handleCancel}>
+                  <X className="w-4 h-4 mr-2" />
+                  Cancelar
+                </Button>
+                <Button size="sm" onClick={handleSave}>
+                  <Save className="w-4 h-4 mr-2" />
+                  Salvar
+                </Button>
+              </div>
+            )}
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="displayName">Nome de Exibição</Label>
+              {isEditing ? (
+                <Input
+                  id="displayName"
+                  value={displayName}
+                  onChange={(e) => setDisplayName(e.target.value)}
+                  placeholder="Digite seu nome"
+                />
+              ) : (
+                <div className="flex items-center space-x-2 p-3 bg-gray-50 rounded-md">
+                  <User className="w-4 h-4 text-gray-400" />
+                  <span>{user.displayName || "Não informado"}</span>
+                </div>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <div className="flex items-center space-x-2 p-3 bg-gray-50 rounded-md">
+                <Mail className="w-4 h-4 text-gray-400" />
+                <span>{user.email}</span>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="createdAt">Membro desde</Label>
+              <div className="flex items-center space-x-2 p-3 bg-gray-50 rounded-md">
+                <Calendar className="w-4 h-4 text-gray-400" />
+                <span>
+                  {user.metadata?.creationTime
+                    ? new Date(user.metadata.creationTime).toLocaleDateString("pt-BR")
+                    : "Data não disponível"}
+                </span>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="lastLogin">Último acesso</Label>
+              <div className="flex items-center space-x-2 p-3 bg-gray-50 rounded-md">
+                <Calendar className="w-4 h-4 text-gray-400" />
+                <span>
+                  {user.metadata?.lastSignInTime
+                    ? new Date(user.metadata.lastSignInTime).toLocaleDateString("pt-BR")
+                    : "Data não disponível"}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <Separator />
+
+        {/* Account Settings */}
+        <div className="space-y-4">
+          <h4 className="text-lg font-medium">Configurações da Conta</h4>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Button variant="outline" className="justify-start bg-transparent">
+              Alterar Senha
+            </Button>
+            <Button variant="outline" className="justify-start bg-transparent">
+              Configurações de Privacidade
+            </Button>
+            <Button variant="outline" className="justify-start bg-transparent">
+              Notificações
+            </Button>
+            <Button variant="outline" className="justify-start text-red-600 hover:text-red-700 bg-transparent">
+              Excluir Conta
+            </Button>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   )
 }
-
-export default UserProfile
