@@ -3,12 +3,13 @@ import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import "./globals.css"
 import { AuthProvider } from "@/contexts/auth-context"
+import TopBanner from "@/components/top-banner"
 
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "Projeto Metanoia - Transformando Vidas",
-  description: "Ajudando jovens e adolescentes de periferia a voltarem a sonhar com o futuro",
+  title: "Projeto Metanoia",
+  description: "Transformando vidas através da educação e desenvolvimento pessoal",
     generator: 'v0.dev'
 }
 
@@ -20,7 +21,10 @@ export default function RootLayout({
   return (
     <html lang="pt-BR">
       <body className={inter.className}>
-        <AuthProvider>{children}</AuthProvider>
+        <AuthProvider>
+          <TopBanner />
+          {children}
+        </AuthProvider>
       </body>
     </html>
   )

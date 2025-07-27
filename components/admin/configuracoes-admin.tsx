@@ -5,65 +5,99 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import { Switch } from "@/components/ui/switch"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Badge } from "@/components/ui/badge"
-import {
-  Settings,
-  Save,
-  MapPin,
-  Phone,
-  Mail,
-  Users,
-  Award,
-  Target,
-  Instagram,
-  Facebook,
-  Twitter,
-  Linkedin,
-} from "lucide-react"
+import { Save, Settings, Palette, Mail, Shield } from "lucide-react"
 import { doc, getDoc, setDoc } from "firebase/firestore"
 import { db } from "@/lib/firebase"
 
-interface ConfiguracoesSite {
+interface Configuracoes {
+  site: {
+    nome: string
+    descricao: string
+    logo: string
+    favicon: string
+    manutencao: boolean
+  }
   contato: {
     email: string
     telefone: string
-    localizacao: string
+    endereco: string
+    horarioFuncionamento: string
   }
-  redesSociais: {
-    instagram: string
+  redes: {
     facebook: string
-    twitter: string
+    instagram: string
+    youtube: string
     linkedin: string
   }
-  estatisticas: {
-    jovensImpactados: string
-    palestrasRealizadas: string
-    parceriasAtivas: string
+  email: {
+    smtp: {
+      host: string
+      port: number
+      usuario: string
+      senha: string
+      ssl: boolean
+    }
+    templates: {
+      boas_vindas: string
+      confirmacao: string
+      recuperacao_senha: string
+    }
+  }
+  tema: {
+    corPrimaria: string
+    corSecundaria: string
+    corTexto: string
+    corFundo: string
   }
 }
 
 export function ConfiguracoesAdmin() {
-  const [loading, setLoading] = useState(false)
-  const [success, setSuccess] = useState(false)
-  const [configuracoes, setConfiguracoes] = useState<ConfiguracoesSite>({
+  const [configuracoes, setConfiguracoes] = useState<Configuracoes>({
+    site: {
+      nome: "Projeto Metanoia",
+      descricao: "Transformando vidas através da educação e desenvolvimento pessoal",
+      logo: "",
+      favicon: "",
+      manutencao: false,
+    },
     contato: {
-      email: "contato@projetometanoia.org",
+      email: "contato@projetometanoia.com",
       telefone: "(11) 99999-9999",
-      localizacao: "São Paulo, SP",
+      endereco: "São Paulo, SP",
+      horarioFuncionamento: "Segunda a Sexta: 9h às 18h",
     },
-    redesSociais: {
-      instagram: "#",
-      facebook: "#",
-      twitter: "#",
-      linkedin: "#",
+    redes: {
+      facebook: "",
+      instagram: "",
+      youtube: "",
+      linkedin: "",
     },
-    estatisticas: {
-      jovensImpactados: "500+",
-      palestrasRealizadas: "50+",
-      parceriasAtivas: "20+",
+    email: {
+      smtp: {
+        host: "",
+        port: 587,
+        usuario: "",
+        senha: "",
+        ssl: true,
+      },
+      templates: {
+        boas_vindas: "",
+        confirmacao: "",
+        recuperacao_senha: "",
+      },
+    },
+    tema: {
+      corPrimaria: "#3B82F6",
+      corSecundaria: "#10B981",
+      corTexto: "#1F2937",
+      corFundo: "#FFFFFF",
     },
   })
+  const [loading, setLoading] = useState(false)
+  const [activeTab, setActiveTab] = useState("site")
 
   useEffect(() => {
     fetchConfiguracoes()
@@ -71,11 +105,11 @@ export function ConfiguracoesAdmin() {
 
   const fetchConfiguracoes = async () => {
     try {
-      const docRef = doc(db, "configuracoes", "site")
+      const docRef = doc(db, "configuracoes", "geral")
       const docSnap = await getDoc(docRef)
 
       if (docSnap.exists()) {
-        setConfiguracoes(docSnap.data() as ConfiguracoesSite)
+        setConfiguracoes({ ...configuracoes, ...docSnap.data() })
       }
     } catch (error) {
       console.error("Erro ao buscar configurações:", error)
@@ -84,12 +118,9 @@ export function ConfiguracoesAdmin() {
 
   const handleSave = async () => {
     setLoading(true)
-    setSuccess(false)
-
     try {
-      await setDoc(doc(db, "configuracoes", "site"), configuracoes)
-      setSuccess(true)
-      setTimeout(() => setSuccess(false), 3000)
+      await setDoc(doc(db, "configuracoes", "geral"), configuracoes)
+      alert("Configurações salvas com sucesso!")
     } catch (error) {
       console.error("Erro ao salvar configurações:", error)
       alert("Erro ao salvar configurações. Tente novamente.")
@@ -98,32 +129,25 @@ export function ConfiguracoesAdmin() {
     }
   }
 
-  const handleContatoChange = (field: keyof ConfiguracoesSite["contato"], value: string) => {
+  const updateConfig = (section: keyof Configuracoes, field: string, value: any) => {
     setConfiguracoes((prev) => ({
       ...prev,
-      contato: {
-        ...prev.contato,
+      [section]: {
+        ...prev[section],
         [field]: value,
       },
     }))
   }
 
-  const handleRedesSociaisChange = (field: keyof ConfiguracoesSite["redesSociais"], value: string) => {
+  const updateNestedConfig = (section: keyof Configuracoes, subsection: string, field: string, value: any) => {
     setConfiguracoes((prev) => ({
       ...prev,
-      redesSociais: {
-        ...prev.redesSociais,
-        [field]: value,
-      },
-    }))
-  }
-
-  const handleEstatisticasChange = (field: keyof ConfiguracoesSite["estatisticas"], value: string) => {
-    setConfiguracoes((prev) => ({
-      ...prev,
-      estatisticas: {
-        ...prev.estatisticas,
-        [field]: value,
+      [section]: {
+        ...prev[section],
+        [subsection]: {
+          ...(prev[section] as any)[subsection],
+          [field]: value,
+        },
       },
     }))
   }
@@ -131,235 +155,375 @@ export function ConfiguracoesAdmin() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <div>
-          <h2 className="text-2xl font-bold flex items-center">
-            <Settings className="mr-3 h-6 w-6" />
-            Configurações do Site
-          </h2>
-          <p className="text-gray-600 mt-1">Gerencie as informações gerais do site</p>
-        </div>
-        <div className="flex items-center space-x-3">
-          {success && (
-            <Badge className="bg-green-100 text-green-800 border-green-200">
-              <Save className="mr-1 h-3 w-3" />
-              Salvo com sucesso!
-            </Badge>
-          )}
-          <Button onClick={handleSave} disabled={loading} className="bg-orange-500 hover:bg-orange-600">
-            <Save className="mr-2 h-4 w-4" />
-            {loading ? "Salvando..." : "Salvar Alterações"}
-          </Button>
-        </div>
+        <h2 className="text-2xl font-bold">Configurações do Sistema</h2>
+        <Button onClick={handleSave} disabled={loading}>
+          <Save className="h-4 w-4 mr-2" />
+          {loading ? "Salvando..." : "Salvar Alterações"}
+        </Button>
       </div>
 
-      <Tabs defaultValue="contato" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3 bg-gray-100 p-1 rounded-xl">
-          <TabsTrigger value="contato" className="rounded-lg">
-            <Mail className="mr-2 h-4 w-4" />
-            Contato
-          </TabsTrigger>
-          <TabsTrigger value="redes" className="rounded-lg">
-            <Instagram className="mr-2 h-4 w-4" />
-            Redes Sociais
-          </TabsTrigger>
-          <TabsTrigger value="estatisticas" className="rounded-lg">
-            <Users className="mr-2 h-4 w-4" />
-            Estatísticas
-          </TabsTrigger>
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList className="grid w-full grid-cols-5">
+          <TabsTrigger value="site">Site</TabsTrigger>
+          <TabsTrigger value="contato">Contato</TabsTrigger>
+          <TabsTrigger value="email">Email</TabsTrigger>
+          <TabsTrigger value="tema">Tema</TabsTrigger>
+          <TabsTrigger value="avancado">Avançado</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="contato" className="space-y-6">
+        <TabsContent value="site">
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center">
-                <Mail className="mr-2 h-5 w-5 text-orange-500" />
+              <CardTitle className="flex items-center gap-2">
+                <Settings className="h-5 w-5" />
+                Configurações do Site
+              </CardTitle>
+              <CardDescription>Configure as informações básicas do site</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="nome">Nome do Site</Label>
+                  <Input
+                    id="nome"
+                    value={configuracoes.site.nome}
+                    onChange={(e) => updateConfig("site", "nome", e.target.value)}
+                  />
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id="manutencao"
+                    checked={configuracoes.site.manutencao}
+                    onCheckedChange={(checked) => updateConfig("site", "manutencao", checked)}
+                  />
+                  <Label htmlFor="manutencao">Modo Manutenção</Label>
+                </div>
+              </div>
+
+              <div>
+                <Label htmlFor="descricao">Descrição</Label>
+                <Textarea
+                  id="descricao"
+                  value={configuracoes.site.descricao}
+                  onChange={(e) => updateConfig("site", "descricao", e.target.value)}
+                  rows={3}
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="logo">URL do Logo</Label>
+                  <Input
+                    id="logo"
+                    value={configuracoes.site.logo}
+                    onChange={(e) => updateConfig("site", "logo", e.target.value)}
+                    placeholder="https://exemplo.com/logo.png"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="favicon">URL do Favicon</Label>
+                  <Input
+                    id="favicon"
+                    value={configuracoes.site.favicon}
+                    onChange={(e) => updateConfig("site", "favicon", e.target.value)}
+                    placeholder="https://exemplo.com/favicon.ico"
+                  />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="contato">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Mail className="h-5 w-5" />
                 Informações de Contato
               </CardTitle>
-              <CardDescription>Configure as informações de contato que aparecem no site</CardDescription>
+              <CardDescription>Configure as informações de contato e redes sociais</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <Label htmlFor="email" className="flex items-center">
-                    <Mail className="mr-2 h-4 w-4 text-orange-500" />
-                    Email
-                  </Label>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="email">Email</Label>
                   <Input
                     id="email"
                     type="email"
                     value={configuracoes.contato.email}
-                    onChange={(e) => handleContatoChange("email", e.target.value)}
-                    placeholder="contato@projetometanoia.org"
+                    onChange={(e) => updateConfig("contato", "email", e.target.value)}
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="telefone" className="flex items-center">
-                    <Phone className="mr-2 h-4 w-4 text-green-500" />
-                    Telefone
-                  </Label>
+                <div>
+                  <Label htmlFor="telefone">Telefone</Label>
                   <Input
                     id="telefone"
                     value={configuracoes.contato.telefone}
-                    onChange={(e) => handleContatoChange("telefone", e.target.value)}
-                    placeholder="(11) 99999-9999"
+                    onChange={(e) => updateConfig("contato", "telefone", e.target.value)}
                   />
                 </div>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="localizacao" className="flex items-center">
-                  <MapPin className="mr-2 h-4 w-4 text-blue-500" />
-                  Localização
-                </Label>
+
+              <div>
+                <Label htmlFor="endereco">Endereço</Label>
                 <Input
-                  id="localizacao"
-                  value={configuracoes.contato.localizacao}
-                  onChange={(e) => handleContatoChange("localizacao", e.target.value)}
-                  placeholder="São Paulo, SP"
+                  id="endereco"
+                  value={configuracoes.contato.endereco}
+                  onChange={(e) => updateConfig("contato", "endereco", e.target.value)}
                 />
               </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
 
-        <TabsContent value="redes" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <Instagram className="mr-2 h-5 w-5 text-pink-500" />
-                Redes Sociais
-              </CardTitle>
-              <CardDescription>Configure os links das redes sociais do projeto</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <Label htmlFor="instagram" className="flex items-center">
-                    <Instagram className="mr-2 h-4 w-4 text-pink-500" />
-                    Instagram
-                  </Label>
-                  <Input
-                    id="instagram"
-                    type="url"
-                    value={configuracoes.redesSociais.instagram}
-                    onChange={(e) => handleRedesSociaisChange("instagram", e.target.value)}
-                    placeholder="https://instagram.com/projetometanoia"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="facebook" className="flex items-center">
-                    <Facebook className="mr-2 h-4 w-4 text-blue-600" />
-                    Facebook
-                  </Label>
-                  <Input
-                    id="facebook"
-                    type="url"
-                    value={configuracoes.redesSociais.facebook}
-                    onChange={(e) => handleRedesSociaisChange("facebook", e.target.value)}
-                    placeholder="https://facebook.com/projetometanoia"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="twitter" className="flex items-center">
-                    <Twitter className="mr-2 h-4 w-4 text-blue-400" />
-                    Twitter
-                  </Label>
-                  <Input
-                    id="twitter"
-                    type="url"
-                    value={configuracoes.redesSociais.twitter}
-                    onChange={(e) => handleRedesSociaisChange("twitter", e.target.value)}
-                    placeholder="https://twitter.com/projetometanoia"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="linkedin" className="flex items-center">
-                    <Linkedin className="mr-2 h-4 w-4 text-blue-700" />
-                    LinkedIn
-                  </Label>
-                  <Input
-                    id="linkedin"
-                    type="url"
-                    value={configuracoes.redesSociais.linkedin}
-                    onChange={(e) => handleRedesSociaisChange("linkedin", e.target.value)}
-                    placeholder="https://linkedin.com/company/projetometanoia"
-                  />
+              <div>
+                <Label htmlFor="horario">Horário de Funcionamento</Label>
+                <Input
+                  id="horario"
+                  value={configuracoes.contato.horarioFuncionamento}
+                  onChange={(e) => updateConfig("contato", "horarioFuncionamento", e.target.value)}
+                />
+              </div>
+
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold">Redes Sociais</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="facebook">Facebook</Label>
+                    <Input
+                      id="facebook"
+                      value={configuracoes.redes.facebook}
+                      onChange={(e) => updateConfig("redes", "facebook", e.target.value)}
+                      placeholder="https://facebook.com/seu-perfil"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="instagram">Instagram</Label>
+                    <Input
+                      id="instagram"
+                      value={configuracoes.redes.instagram}
+                      onChange={(e) => updateConfig("redes", "instagram", e.target.value)}
+                      placeholder="https://instagram.com/seu-perfil"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="youtube">YouTube</Label>
+                    <Input
+                      id="youtube"
+                      value={configuracoes.redes.youtube}
+                      onChange={(e) => updateConfig("redes", "youtube", e.target.value)}
+                      placeholder="https://youtube.com/seu-canal"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="linkedin">LinkedIn</Label>
+                    <Input
+                      id="linkedin"
+                      value={configuracoes.redes.linkedin}
+                      onChange={(e) => updateConfig("redes", "linkedin", e.target.value)}
+                      placeholder="https://linkedin.com/company/sua-empresa"
+                    />
+                  </div>
                 </div>
               </div>
             </CardContent>
           </Card>
         </TabsContent>
 
-        <TabsContent value="estatisticas" className="space-y-6">
+        <TabsContent value="email">
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center">
-                <Users className="mr-2 h-5 w-5 text-emerald-500" />
-                Números de Impacto
-              </CardTitle>
-              <CardDescription>Configure as estatísticas que aparecem na página inicial e sobre</CardDescription>
+              <CardTitle>Configurações de Email</CardTitle>
+              <CardDescription>Configure o servidor SMTP e templates de email</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="space-y-2">
-                  <Label htmlFor="jovensImpactados" className="flex items-center">
-                    <Users className="mr-2 h-4 w-4 text-orange-500" />
-                    Jovens Impactados
-                  </Label>
-                  <Input
-                    id="jovensImpactados"
-                    value={configuracoes.estatisticas.jovensImpactados}
-                    onChange={(e) => handleEstatisticasChange("jovensImpactados", e.target.value)}
-                    placeholder="500+"
-                  />
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold">Servidor SMTP</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="smtp-host">Host</Label>
+                    <Input
+                      id="smtp-host"
+                      value={configuracoes.email.smtp.host}
+                      onChange={(e) => updateNestedConfig("email", "smtp", "host", e.target.value)}
+                      placeholder="smtp.gmail.com"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="smtp-port">Porta</Label>
+                    <Input
+                      id="smtp-port"
+                      type="number"
+                      value={configuracoes.email.smtp.port}
+                      onChange={(e) => updateNestedConfig("email", "smtp", "port", Number.parseInt(e.target.value))}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="smtp-usuario">Usuário</Label>
+                    <Input
+                      id="smtp-usuario"
+                      value={configuracoes.email.smtp.usuario}
+                      onChange={(e) => updateNestedConfig("email", "smtp", "usuario", e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="smtp-senha">Senha</Label>
+                    <Input
+                      id="smtp-senha"
+                      type="password"
+                      value={configuracoes.email.smtp.senha}
+                      onChange={(e) => updateNestedConfig("email", "smtp", "senha", e.target.value)}
+                    />
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="palestrasRealizadas" className="flex items-center">
-                    <Award className="mr-2 h-4 w-4 text-emerald-500" />
-                    Palestras Realizadas
-                  </Label>
-                  <Input
-                    id="palestrasRealizadas"
-                    value={configuracoes.estatisticas.palestrasRealizadas}
-                    onChange={(e) => handleEstatisticasChange("palestrasRealizadas", e.target.value)}
-                    placeholder="50+"
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id="smtp-ssl"
+                    checked={configuracoes.email.smtp.ssl}
+                    onCheckedChange={(checked) => updateNestedConfig("email", "smtp", "ssl", checked)}
                   />
+                  <Label htmlFor="smtp-ssl">Usar SSL</Label>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="parceriasAtivas" className="flex items-center">
-                    <Target className="mr-2 h-4 w-4 text-blue-500" />
-                    Parcerias Ativas
-                  </Label>
-                  <Input
-                    id="parceriasAtivas"
-                    value={configuracoes.estatisticas.parceriasAtivas}
-                    onChange={(e) => handleEstatisticasChange("parceriasAtivas", e.target.value)}
-                    placeholder="20+"
-                  />
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="tema">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Palette className="h-5 w-5" />
+                Personalização do Tema
+              </CardTitle>
+              <CardDescription>Customize as cores e aparência do site</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div>
+                  <Label htmlFor="cor-primaria">Cor Primária</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      id="cor-primaria"
+                      type="color"
+                      value={configuracoes.tema.corPrimaria}
+                      onChange={(e) => updateConfig("tema", "corPrimaria", e.target.value)}
+                      className="w-16 h-10"
+                    />
+                    <Input
+                      value={configuracoes.tema.corPrimaria}
+                      onChange={(e) => updateConfig("tema", "corPrimaria", e.target.value)}
+                      className="flex-1"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <Label htmlFor="cor-secundaria">Cor Secundária</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      id="cor-secundaria"
+                      type="color"
+                      value={configuracoes.tema.corSecundaria}
+                      onChange={(e) => updateConfig("tema", "corSecundaria", e.target.value)}
+                      className="w-16 h-10"
+                    />
+                    <Input
+                      value={configuracoes.tema.corSecundaria}
+                      onChange={(e) => updateConfig("tema", "corSecundaria", e.target.value)}
+                      className="flex-1"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <Label htmlFor="cor-texto">Cor do Texto</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      id="cor-texto"
+                      type="color"
+                      value={configuracoes.tema.corTexto}
+                      onChange={(e) => updateConfig("tema", "corTexto", e.target.value)}
+                      className="w-16 h-10"
+                    />
+                    <Input
+                      value={configuracoes.tema.corTexto}
+                      onChange={(e) => updateConfig("tema", "corTexto", e.target.value)}
+                      className="flex-1"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <Label htmlFor="cor-fundo">Cor de Fundo</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      id="cor-fundo"
+                      type="color"
+                      value={configuracoes.tema.corFundo}
+                      onChange={(e) => updateConfig("tema", "corFundo", e.target.value)}
+                      className="w-16 h-10"
+                    />
+                    <Input
+                      value={configuracoes.tema.corFundo}
+                      onChange={(e) => updateConfig("tema", "corFundo", e.target.value)}
+                      className="flex-1"
+                    />
+                  </div>
                 </div>
               </div>
 
-              {/* Preview das estatísticas */}
-              <div className="mt-8 p-6 bg-gray-50 rounded-xl">
-                <h4 className="text-lg font-semibold mb-4 text-gray-800">Preview das Estatísticas</h4>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div className="text-center p-4 bg-white rounded-lg shadow-sm">
-                    <div className="text-3xl font-bold text-orange-500 mb-2">
-                      {configuracoes.estatisticas.jovensImpactados}
-                    </div>
-                    <div className="text-gray-600">Jovens Impactados</div>
-                  </div>
-                  <div className="text-center p-4 bg-white rounded-lg shadow-sm">
-                    <div className="text-3xl font-bold text-emerald-500 mb-2">
-                      {configuracoes.estatisticas.palestrasRealizadas}
-                    </div>
-                    <div className="text-gray-600">Palestras Realizadas</div>
-                  </div>
-                  <div className="text-center p-4 bg-white rounded-lg shadow-sm">
-                    <div className="text-3xl font-bold text-blue-500 mb-2">
-                      {configuracoes.estatisticas.parceriasAtivas}
-                    </div>
-                    <div className="text-gray-600">Parcerias Ativas</div>
-                  </div>
+              <div className="mt-6 p-4 border rounded-lg">
+                <h4 className="font-semibold mb-2">Pré-visualização</h4>
+                <div
+                  className="p-4 rounded"
+                  style={{
+                    backgroundColor: configuracoes.tema.corFundo,
+                    color: configuracoes.tema.corTexto,
+                  }}
+                >
+                  <h3 style={{ color: configuracoes.tema.corPrimaria }}>Título Principal</h3>
+                  <p>Este é um exemplo de texto normal no site.</p>
+                  <button
+                    className="px-4 py-2 rounded mt-2"
+                    style={{
+                      backgroundColor: configuracoes.tema.corPrimaria,
+                      color: configuracoes.tema.corFundo,
+                    }}
+                  >
+                    Botão Primário
+                  </button>
+                  <button
+                    className="px-4 py-2 rounded mt-2 ml-2"
+                    style={{
+                      backgroundColor: configuracoes.tema.corSecundaria,
+                      color: configuracoes.tema.corFundo,
+                    }}
+                  >
+                    Botão Secundário
+                  </button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="avancado">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Shield className="h-5 w-5" />
+                Configurações Avançadas
+              </CardTitle>
+              <CardDescription>Configurações técnicas e de segurança</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                  <h4 className="font-semibold text-yellow-800 mb-2">⚠️ Atenção</h4>
+                  <p className="text-yellow-700 text-sm">
+                    As configurações desta seção são técnicas e podem afetar o funcionamento do site. Altere apenas se
+                    souber o que está fazendo.
+                  </p>
+                </div>
+
+                <div className="text-center py-8 text-gray-500">
+                  <Shield className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                  <p>Configurações avançadas serão implementadas em versões futuras.</p>
                 </div>
               </div>
             </CardContent>

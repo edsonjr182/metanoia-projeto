@@ -1,39 +1,58 @@
 import { notFound } from "next/navigation"
-import { doc, getDoc } from "firebase/firestore"
+import { collection, query, where, getDocs } from "firebase/firestore"
 import { db } from "@/lib/firebase"
 import LandingPageClient from "./landing-page-client"
 
 interface LandingPageData {
   id: string
-  titulo: string
-  descricao: string
-  dataEvento: string
-  horario: string
-  local: string
-  capacidade: number
-  inscricoes: number
-  ativo: boolean
-  campos: Array<{
-    id: string
-    nome: string
-    tipo: "texto" | "email" | "telefone" | "textarea"
-    obrigatorio: boolean
-    placeholder: string
-  }>
+  title: string
+  slug: string
+  description: string
+  primaryColor: string
+  secondaryColor: string
+  sections: any[]
+  formFields: any[]
+  thankYouMessage: string
+  active: boolean
 }
 
 async function getLandingPage(slug: string): Promise<LandingPageData | null> {
   try {
-    const docRef = doc(db, "landingPages", slug)
-    const docSnap = await getDoc(docRef)
+    const q = query(collection(db, "landingPages"), where("slug", "==", slug), where("active", "==", true))
+    const querySnapshot = await getDocs(q)
 
-    if (docSnap.exists() && docSnap.data().ativo) {
-      return { id: docSnap.id, ...docSnap.data() } as LandingPageData
+    if (querySnapshot.empty) {
+      return null
     }
-    return null
+
+    const doc = querySnapshot.docs[0]
+    return {
+      id: doc.id,
+      ...doc.data(),
+    } as LandingPageData
   } catch (error) {
     console.error("Erro ao buscar landing page:", error)
     return null
+  }
+}
+
+export async function generateMetadata({ params }: { params: { slug: string } }) {
+  const landingPage = await getLandingPage(params.slug)
+
+  if (!landingPage) {
+    return {
+      title: "Página não encontrada",
+    }
+  }
+
+  return {
+    title: landingPage.title,
+    description: landingPage.description,
+    openGraph: {
+      title: landingPage.title,
+      description: landingPage.description,
+      type: "website",
+    },
   }
 }
 

@@ -1,6 +1,7 @@
 "use client"
 
 import type React from "react"
+
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -8,23 +9,21 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
-import { Plus, Edit, Trash2, Calendar, MapPin, ExternalLink } from "lucide-react"
+import { Plus, Edit, Trash2, Calendar, MapPin, Clock } from "lucide-react"
 import { collection, addDoc, getDocs, deleteDoc, doc, updateDoc, query, orderBy } from "firebase/firestore"
 import { db } from "@/lib/firebase"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 interface Palestra {
   id: string
   titulo: string
   descricao: string
+  palestrante: string
   data: string
   horario: string
   local: string
-  palestrante: string
-  vagas: number
-  categoria: string
-  modalidade: "presencial" | "online"
-  linkPalestra: string
+  duracao: string
+  ativo: boolean
+  criadoEm: string
 }
 
 export function PalestrasAdmin() {
@@ -35,14 +34,12 @@ export function PalestrasAdmin() {
   const [formData, setFormData] = useState({
     titulo: "",
     descricao: "",
+    palestrante: "",
     data: "",
     horario: "",
     local: "",
-    palestrante: "",
-    vagas: 0,
-    categoria: "",
-    modalidade: "presencial",
-    linkPalestra: "",
+    duracao: "",
+    ativo: true,
   })
 
   useEffect(() => {
@@ -51,7 +48,7 @@ export function PalestrasAdmin() {
 
   const fetchPalestras = async () => {
     try {
-      const q = query(collection(db, "palestras"), orderBy("data", "asc"))
+      const q = query(collection(db, "palestras"), orderBy("data", "desc"))
       const querySnapshot = await getDocs(q)
       const palestrasData = querySnapshot.docs.map((doc) => ({
         id: doc.id,
@@ -68,16 +65,23 @@ export function PalestrasAdmin() {
     setLoading(true)
 
     try {
+      const palestraData = {
+        ...formData,
+        criadoEm: editingPalestra ? editingPalestra.criadoEm : new Date().toISOString(),
+      }
+
       if (editingPalestra) {
-        await updateDoc(doc(db, "palestras", editingPalestra.id), formData)
+        await updateDoc(doc(db, "palestras", editingPalestra.id), palestraData)
       } else {
-        await addDoc(collection(db, "palestras"), formData)
+        await addDoc(collection(db, "palestras"), palestraData)
       }
 
       resetForm()
       fetchPalestras()
+      alert("Palestra salva com sucesso!")
     } catch (error) {
       console.error("Erro ao salvar palestra:", error)
+      alert("Erro ao salvar palestra. Tente novamente.")
     } finally {
       setLoading(false)
     }
@@ -88,8 +92,10 @@ export function PalestrasAdmin() {
       try {
         await deleteDoc(doc(db, "palestras", id))
         fetchPalestras()
+        alert("Palestra excluída com sucesso!")
       } catch (error) {
         console.error("Erro ao excluir palestra:", error)
+        alert("Erro ao excluir palestra.")
       }
     }
   }
@@ -99,14 +105,12 @@ export function PalestrasAdmin() {
     setFormData({
       titulo: palestra.titulo,
       descricao: palestra.descricao,
+      palestrante: palestra.palestrante,
       data: palestra.data,
       horario: palestra.horario,
       local: palestra.local,
-      palestrante: palestra.palestrante,
-      vagas: palestra.vagas,
-      categoria: palestra.categoria,
-      modalidade: palestra.modalidade || "presencial",
-      linkPalestra: palestra.linkPalestra || "",
+      duracao: palestra.duracao,
+      ativo: palestra.ativo,
     })
     setShowForm(true)
   }
@@ -115,14 +119,12 @@ export function PalestrasAdmin() {
     setFormData({
       titulo: "",
       descricao: "",
+      palestrante: "",
       data: "",
       horario: "",
       local: "",
-      palestrante: "",
-      vagas: 0,
-      categoria: "",
-      modalidade: "presencial",
-      linkPalestra: "",
+      duracao: "",
+      ativo: true,
     })
     setEditingPalestra(null)
     setShowForm(false)
@@ -130,10 +132,7 @@ export function PalestrasAdmin() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
-    setFormData((prev) => ({
-      ...prev,
-      [name]: name === "vagas" ? Number.parseInt(value) || 0 : value,
-    }))
+    setFormData((prev) => ({ ...prev, [name]: value }))
   }
 
   return (
@@ -150,59 +149,40 @@ export function PalestrasAdmin() {
         <Card>
           <CardHeader>
             <CardTitle>{editingPalestra ? "Editar Palestra" : "Nova Palestra"}</CardTitle>
+            <CardDescription>Crie e gerencie palestras e eventos</CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="titulo">Título</Label>
+                  <Label htmlFor="titulo">Título da Palestra</Label>
                   <Input id="titulo" name="titulo" value={formData.titulo} onChange={handleChange} required />
                 </div>
                 <div>
-                  <Label htmlFor="categoria">Categoria</Label>
-                  <Input id="categoria" name="categoria" value={formData.categoria} onChange={handleChange} required />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="modalidade">Modalidade</Label>
-                  <Select
-                    value={formData.modalidade}
-                    onValueChange={(value) =>
-                      setFormData((prev) => ({ ...prev, modalidade: value as "presencial" | "online" }))
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="presencial">Presencial</SelectItem>
-                      <SelectItem value="online">Online</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label htmlFor="linkPalestra">Link da Palestra</Label>
+                  <Label htmlFor="palestrante">Palestrante</Label>
                   <Input
-                    id="linkPalestra"
-                    name="linkPalestra"
-                    type="url"
-                    value={formData.linkPalestra}
+                    id="palestrante"
+                    name="palestrante"
+                    value={formData.palestrante}
                     onChange={handleChange}
-                    placeholder="https://exemplo.com/palestra"
                     required
                   />
-                  <p className="text-xs text-gray-500 mt-1">Link da landing page ou página de acesso à palestra</p>
                 </div>
               </div>
 
               <div>
                 <Label htmlFor="descricao">Descrição</Label>
-                <Textarea id="descricao" name="descricao" value={formData.descricao} onChange={handleChange} required />
+                <Textarea
+                  id="descricao"
+                  name="descricao"
+                  value={formData.descricao}
+                  onChange={handleChange}
+                  rows={3}
+                  required
+                />
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div>
                   <Label htmlFor="data">Data</Label>
                   <Input id="data" name="data" type="date" value={formData.data} onChange={handleChange} required />
@@ -219,34 +199,19 @@ export function PalestrasAdmin() {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="vagas">Vagas</Label>
+                  <Label htmlFor="duracao">Duração</Label>
                   <Input
-                    id="vagas"
-                    name="vagas"
-                    type="number"
-                    value={formData.vagas}
+                    id="duracao"
+                    name="duracao"
+                    value={formData.duracao}
                     onChange={handleChange}
+                    placeholder="Ex: 2 horas"
                     required
                   />
                 </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {formData.modalidade === "presencial" && (
-                  <div>
-                    <Label htmlFor="local">Local</Label>
-                    <Input id="local" name="local" value={formData.local} onChange={handleChange} required />
-                  </div>
-                )}
                 <div>
-                  <Label htmlFor="palestrante">Palestrante</Label>
-                  <Input
-                    id="palestrante"
-                    name="palestrante"
-                    value={formData.palestrante}
-                    onChange={handleChange}
-                    required
-                  />
+                  <Label htmlFor="local">Local</Label>
+                  <Input id="local" name="local" value={formData.local} onChange={handleChange} required />
                 </div>
               </div>
 
@@ -268,16 +233,7 @@ export function PalestrasAdmin() {
           <Card key={palestra.id}>
             <CardHeader>
               <div className="flex justify-between items-start">
-                <div className="flex gap-2">
-                  <Badge variant="secondary">{palestra.categoria}</Badge>
-                  <Badge
-                    className={
-                      palestra.modalidade === "online" ? "bg-blue-100 text-blue-800" : "bg-green-100 text-green-800"
-                    }
-                  >
-                    {palestra.modalidade === "online" ? "Online" : "Presencial"}
-                  </Badge>
-                </div>
+                <Badge variant={palestra.ativo ? "default" : "secondary"}>{palestra.ativo ? "Ativa" : "Inativa"}</Badge>
                 <div className="flex gap-2">
                   <Button size="sm" variant="outline" onClick={() => handleEdit(palestra)}>
                     <Edit className="h-4 w-4" />
@@ -288,35 +244,25 @@ export function PalestrasAdmin() {
                 </div>
               </div>
               <CardTitle className="text-lg">{palestra.titulo}</CardTitle>
-              <CardDescription>Por: {palestra.palestrante}</CardDescription>
+              <CardDescription className="line-clamp-2">{palestra.descricao}</CardDescription>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-gray-600 mb-4">{palestra.descricao}</p>
-              <div className="space-y-2 text-sm">
+              <div className="space-y-3 text-sm">
+                <p>
+                  <strong>Palestrante:</strong> {palestra.palestrante}
+                </p>
                 <div className="flex items-center">
                   <Calendar className="h-4 w-4 mr-2 text-orange-500" />
-                  {new Date(palestra.data).toLocaleDateString("pt-BR")} - {palestra.horario}
+                  {new Date(palestra.data).toLocaleDateString("pt-BR")}
                 </div>
-                {palestra.modalidade === "presencial" && palestra.local && (
-                  <div className="flex items-center">
-                    <MapPin className="h-4 w-4 mr-2 text-orange-500" />
-                    {palestra.local}
-                  </div>
-                )}
-                <div className="text-gray-600">{palestra.vagas} vagas disponíveis</div>
-                {palestra.linkPalestra && (
-                  <div>
-                    <a
-                      href={palestra.linkPalestra}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-600 hover:text-blue-800 flex items-center text-sm"
-                    >
-                      Acessar Palestra
-                      <ExternalLink className="h-3 w-3 ml-1" />
-                    </a>
-                  </div>
-                )}
+                <div className="flex items-center">
+                  <Clock className="h-4 w-4 mr-2 text-orange-500" />
+                  {palestra.horario} - {palestra.duracao}
+                </div>
+                <div className="flex items-center">
+                  <MapPin className="h-4 w-4 mr-2 text-orange-500" />
+                  {palestra.local}
+                </div>
               </div>
             </CardContent>
           </Card>

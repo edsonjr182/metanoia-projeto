@@ -1,20 +1,19 @@
 "use client"
 
-import type React from "react"
-
 import { useState } from "react"
+import type React from "react"
+import { useAuth } from "@/contexts/auth-context"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { User, Mail, Calendar, Shield, AlertCircle, CheckCircle } from "lucide-react"
-import { useAuth } from "@/contexts/auth-context"
+import { User, Mail, Calendar, Shield, AlertCircle, CheckCircle, LogOut } from "lucide-react"
 import { updateProfile, updatePassword } from "firebase/auth"
 
-export default function UserProfile() {
-  const { user } = useAuth()
+export function UserProfile() {
+  const { user, logout } = useAuth()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
   const [success, setSuccess] = useState("")
@@ -85,6 +84,14 @@ export default function UserProfile() {
     }
   }
 
+  const handleLogout = async () => {
+    try {
+      await logout()
+    } catch (error) {
+      console.error("Erro ao fazer logout:", error)
+    }
+  }
+
   if (!user) return null
 
   const getInitials = (name: string) => {
@@ -101,9 +108,20 @@ export default function UserProfile() {
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
-      <div className="text-center">
-        <h1 className="text-3xl font-bold text-slate-900 mb-2">Meu Perfil</h1>
-        <p className="text-gray-600">Gerencie suas informações pessoais e configurações</p>
+      <div className="flex items-center space-x-3 mb-6">
+        <Avatar>
+          <AvatarImage src={user.photoURL || ""} alt={user.displayName || ""} />
+          <AvatarFallback className="text-lg">
+            {user.displayName ? getInitials(user.displayName) : <User className="h-4 w-4" />}
+          </AvatarFallback>
+        </Avatar>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-medium text-gray-900 truncate">{user.email}</p>
+          <p className="text-xs text-gray-500">Administrador</p>
+        </div>
+        <Button variant="ghost" size="sm" onClick={handleLogout}>
+          <LogOut className="h-4 w-4" />
+        </Button>
       </div>
 
       {error && (
@@ -235,3 +253,5 @@ export default function UserProfile() {
     </div>
   )
 }
+
+export default UserProfile

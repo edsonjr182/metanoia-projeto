@@ -1,6 +1,7 @@
 "use client"
 
 import type React from "react"
+
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -8,21 +9,22 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Plus, Edit, Trash2, ExternalLink } from "lucide-react"
+import { Plus, Edit, Trash2, Users, Calendar } from "lucide-react"
 import { collection, addDoc, getDocs, deleteDoc, doc, updateDoc, query, orderBy } from "firebase/firestore"
 import { db } from "@/lib/firebase"
 
 interface Curso {
   id: string
-  nome: string
+  titulo: string
   descricao: string
-  instituicao: string
+  instrutor: string
   duracao: string
-  modalidade: string
-  categoria: string
-  link?: string
-  gratuito: boolean
+  preco: number
+  dataInicio: string
+  vagas: number
+  inscricoes: number
+  ativo: boolean
+  criadoEm: string
 }
 
 export function CursosAdmin() {
@@ -31,14 +33,14 @@ export function CursosAdmin() {
   const [showForm, setShowForm] = useState(false)
   const [editingCurso, setEditingCurso] = useState<Curso | null>(null)
   const [formData, setFormData] = useState({
-    nome: "",
+    titulo: "",
     descricao: "",
-    instituicao: "",
+    instrutor: "",
     duracao: "",
-    modalidade: "",
-    categoria: "",
-    link: "",
-    gratuito: true,
+    preco: 0,
+    dataInicio: "",
+    vagas: 20,
+    ativo: true,
   })
 
   useEffect(() => {
@@ -47,7 +49,7 @@ export function CursosAdmin() {
 
   const fetchCursos = async () => {
     try {
-      const q = query(collection(db, "cursos"), orderBy("nome", "asc"))
+      const q = query(collection(db, "cursos"), orderBy("dataInicio", "desc"))
       const querySnapshot = await getDocs(q)
       const cursosData = querySnapshot.docs.map((doc) => ({
         id: doc.id,
@@ -64,16 +66,24 @@ export function CursosAdmin() {
     setLoading(true)
 
     try {
+      const cursoData = {
+        ...formData,
+        inscricoes: editingCurso ? editingCurso.inscricoes : 0,
+        criadoEm: editingCurso ? editingCurso.criadoEm : new Date().toISOString(),
+      }
+
       if (editingCurso) {
-        await updateDoc(doc(db, "cursos", editingCurso.id), formData)
+        await updateDoc(doc(db, "cursos", editingCurso.id), cursoData)
       } else {
-        await addDoc(collection(db, "cursos"), formData)
+        await addDoc(collection(db, "cursos"), cursoData)
       }
 
       resetForm()
       fetchCursos()
+      alert("Curso salvo com sucesso!")
     } catch (error) {
       console.error("Erro ao salvar curso:", error)
+      alert("Erro ao salvar curso. Tente novamente.")
     } finally {
       setLoading(false)
     }
@@ -84,8 +94,10 @@ export function CursosAdmin() {
       try {
         await deleteDoc(doc(db, "cursos", id))
         fetchCursos()
+        alert("Curso excluído com sucesso!")
       } catch (error) {
         console.error("Erro ao excluir curso:", error)
+        alert("Erro ao excluir curso.")
       }
     }
   }
@@ -93,28 +105,28 @@ export function CursosAdmin() {
   const handleEdit = (curso: Curso) => {
     setEditingCurso(curso)
     setFormData({
-      nome: curso.nome,
+      titulo: curso.titulo,
       descricao: curso.descricao,
-      instituicao: curso.instituicao,
+      instrutor: curso.instrutor,
       duracao: curso.duracao,
-      modalidade: curso.modalidade,
-      categoria: curso.categoria,
-      link: curso.link || "",
-      gratuito: curso.gratuito,
+      preco: curso.preco,
+      dataInicio: curso.dataInicio,
+      vagas: curso.vagas,
+      ativo: curso.ativo,
     })
     setShowForm(true)
   }
 
   const resetForm = () => {
     setFormData({
-      nome: "",
+      titulo: "",
       descricao: "",
-      instituicao: "",
+      instrutor: "",
       duracao: "",
-      modalidade: "",
-      categoria: "",
-      link: "",
-      gratuito: true,
+      preco: 0,
+      dataInicio: "",
+      vagas: 20,
+      ativo: true,
     })
     setEditingCurso(null)
     setShowForm(false)
@@ -124,7 +136,7 @@ export function CursosAdmin() {
     const { name, value } = e.target
     setFormData((prev) => ({
       ...prev,
-      [name]: value,
+      [name]: name === "preco" || name === "vagas" ? Number.parseInt(value) || 0 : value,
     }))
   }
 
@@ -142,36 +154,34 @@ export function CursosAdmin() {
         <Card>
           <CardHeader>
             <CardTitle>{editingCurso ? "Editar Curso" : "Novo Curso"}</CardTitle>
+            <CardDescription>Crie e gerencie cursos oferecidos</CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="nome">Nome do Curso</Label>
-                  <Input id="nome" name="nome" value={formData.nome} onChange={handleChange} required />
+                  <Label htmlFor="titulo">Título do Curso</Label>
+                  <Input id="titulo" name="titulo" value={formData.titulo} onChange={handleChange} required />
                 </div>
                 <div>
-                  <Label htmlFor="categoria">Categoria</Label>
-                  <Input id="categoria" name="categoria" value={formData.categoria} onChange={handleChange} required />
+                  <Label htmlFor="instrutor">Instrutor</Label>
+                  <Input id="instrutor" name="instrutor" value={formData.instrutor} onChange={handleChange} required />
                 </div>
               </div>
 
               <div>
                 <Label htmlFor="descricao">Descrição</Label>
-                <Textarea id="descricao" name="descricao" value={formData.descricao} onChange={handleChange} required />
+                <Textarea
+                  id="descricao"
+                  name="descricao"
+                  value={formData.descricao}
+                  onChange={handleChange}
+                  rows={3}
+                  required
+                />
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="instituicao">Instituição</Label>
-                  <Input
-                    id="instituicao"
-                    name="instituicao"
-                    value={formData.instituicao}
-                    onChange={handleChange}
-                    required
-                  />
-                </div>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div>
                   <Label htmlFor="duracao">Duração</Label>
                   <Input
@@ -179,47 +189,43 @@ export function CursosAdmin() {
                     name="duracao"
                     value={formData.duracao}
                     onChange={handleChange}
-                    placeholder="Ex: 6 meses"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="modalidade">Modalidade</Label>
-                  <Input
-                    id="modalidade"
-                    name="modalidade"
-                    value={formData.modalidade}
-                    onChange={handleChange}
-                    placeholder="Ex: Presencial, Online, Híbrido"
+                    placeholder="Ex: 8 semanas"
                     required
                   />
                 </div>
                 <div>
-                  <Label htmlFor="link">Link da Primeira Aula/Apresentação (YouTube)</Label>
+                  <Label htmlFor="preco">Preço (R$)</Label>
                   <Input
-                    id="link"
-                    name="link"
-                    type="url"
-                    value={formData.link}
+                    id="preco"
+                    name="preco"
+                    type="number"
+                    value={formData.preco}
                     onChange={handleChange}
-                    placeholder="https://youtube.com/watch?v=... ou https://youtu.be/..."
+                    required
                   />
-                  <p className="text-xs text-gray-500 mt-1">
-                    Cole aqui o link do YouTube da primeira aula ou apresentação do curso
-                  </p>
                 </div>
-              </div>
-
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="gratuito"
-                  checked={formData.gratuito}
-                  onCheckedChange={(checked) => setFormData((prev) => ({ ...prev, gratuito: checked as boolean }))}
-                />
-                <Label htmlFor="gratuito">Curso gratuito</Label>
+                <div>
+                  <Label htmlFor="vagas">Vagas</Label>
+                  <Input
+                    id="vagas"
+                    name="vagas"
+                    type="number"
+                    value={formData.vagas}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="dataInicio">Data de Início</Label>
+                  <Input
+                    id="dataInicio"
+                    name="dataInicio"
+                    type="date"
+                    value={formData.dataInicio}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
               </div>
 
               <div className="flex gap-2">
@@ -236,52 +242,53 @@ export function CursosAdmin() {
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {cursos.map((curso) => (
-          <Card key={curso.id}>
-            <CardHeader>
-              <div className="flex justify-between items-start">
-                <div className="flex gap-2">
-                  <Badge variant="secondary">{curso.categoria}</Badge>
-                  {curso.gratuito && <Badge className="bg-green-500 text-white">Gratuito</Badge>}
-                </div>
-                <div className="flex gap-2">
-                  <Button size="sm" variant="outline" onClick={() => handleEdit(curso)}>
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                  <Button size="sm" variant="outline" onClick={() => handleDelete(curso.id)}>
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-              <CardTitle className="text-lg">{curso.nome}</CardTitle>
-              <CardDescription>{curso.instituicao}</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-gray-600 mb-4">{curso.descricao}</p>
-              <div className="space-y-2 text-sm">
-                <div>
-                  <strong>Duração:</strong> {curso.duracao}
-                </div>
-                <div>
-                  <strong>Modalidade:</strong> {curso.modalidade}
-                </div>
-                {curso.link && (
-                  <div>
-                    <a
-                      href={curso.link}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-600 hover:text-blue-800 flex items-center"
-                    >
-                      Ver mais detalhes
-                      <ExternalLink className="h-3 w-3 ml-1" />
-                    </a>
+        {cursos.map((curso) => {
+          const vagasDisponiveis = curso.vagas - curso.inscricoes
+
+          return (
+            <Card key={curso.id}>
+              <CardHeader>
+                <div className="flex justify-between items-start">
+                  <div className="flex gap-2">
+                    <Badge variant={curso.ativo ? "default" : "secondary"}>{curso.ativo ? "Ativo" : "Inativo"}</Badge>
+                    {vagasDisponiveis <= 0 && <Badge variant="destructive">Esgotado</Badge>}
                   </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+                  <div className="flex gap-2">
+                    <Button size="sm" variant="outline" onClick={() => handleEdit(curso)}>
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={() => handleDelete(curso.id)}>
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+                <CardTitle className="text-lg">{curso.titulo}</CardTitle>
+                <CardDescription className="line-clamp-2">{curso.descricao}</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3 text-sm">
+                  <p>
+                    <strong>Instrutor:</strong> {curso.instrutor}
+                  </p>
+                  <p>
+                    <strong>Duração:</strong> {curso.duracao}
+                  </p>
+                  <p>
+                    <strong>Preço:</strong> R$ {curso.preco.toFixed(2)}
+                  </p>
+                  <div className="flex items-center">
+                    <Calendar className="h-4 w-4 mr-2 text-orange-500" />
+                    {new Date(curso.dataInicio).toLocaleDateString("pt-BR")}
+                  </div>
+                  <div className="flex items-center">
+                    <Users className="h-4 w-4 mr-2 text-orange-500" />
+                    {curso.inscricoes} / {curso.vagas} inscritos
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )
+        })}
       </div>
     </div>
   )
