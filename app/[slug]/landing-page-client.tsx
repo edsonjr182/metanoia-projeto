@@ -1,20 +1,32 @@
 "use client"
-import { useState } from "react"
-import type React from "react"
 
+import type React from "react"
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Heart, CheckCircle, User, Phone, Mail, Calendar } from "lucide-react"
+import { Textarea } from "@/components/ui/textarea"
+import { Badge } from "@/components/ui/badge"
+import { Calendar, MapPin, Clock, Users } from "lucide-react"
 
 interface LandingPageData {
   id: string
-  title: string
-  slug: string
-  videoUrl: string
-  description: string
-  createdAt: any
+  titulo: string
+  descricao: string
+  dataEvento: string
+  horario: string
+  local: string
+  capacidade: number
+  inscricoes: number
+  ativo: boolean
+  campos: Array<{
+    id: string
+    nome: string
+    tipo: "texto" | "email" | "telefone" | "textarea"
+    obrigatorio: boolean
+    placeholder: string
+  }>
 }
 
 interface LandingPageClientProps {
@@ -22,213 +34,165 @@ interface LandingPageClientProps {
 }
 
 export default function LandingPageClient({ landingPage }: LandingPageClientProps) {
-  const [formData, setFormData] = useState({
-    name: "",
-    whatsapp: "",
-    email: "",
-    age: "",
-  })
-  const [loading, setLoading] = useState(false)
-  const [submitted, setSubmitted] = useState(false)
+  const [formData, setFormData] = useState<Record<string, string>>({})
+  const [submitting, setSubmitting] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setLoading(true)
+
+    // Validar campos obrigatórios
+    const camposObrigatorios = landingPage.campos.filter((campo) => campo.obrigatorio)
+    for (const campo of camposObrigatorios) {
+      if (!formData[campo.id] || formData[campo.id].trim() === "") {
+        alert(`O campo ${campo.nome} é obrigatório`)
+        return
+      }
+    }
+
+    setSubmitting(true)
 
     try {
-      // Importação dinâmica do Firebase apenas quando necessário
+      const { collection, addDoc, doc, updateDoc, increment } = await import("firebase/firestore")
       const { db } = await import("@/lib/firebase")
-      const { collection, addDoc } = await import("firebase/firestore")
 
-      await addDoc(collection(db, "landingPageSubmissions"), {
-        ...formData,
+      // Salvar inscrição
+      await addDoc(collection(db, "inscricoes"), {
         landingPageId: landingPage.id,
-        createdAt: new Date(),
+        landingPageTitulo: landingPage.titulo,
+        dados: formData,
+        dataInscricao: new Date().toISOString(),
+        status: "ativa",
       })
 
-      setSubmitted(true)
+      // Incrementar contador de inscrições
+      const landingPageRef = doc(db, "landingPages", landingPage.id)
+      await updateDoc(landingPageRef, {
+        inscricoes: increment(1),
+      })
+
       alert("Inscrição realizada com sucesso!")
+      setFormData({})
     } catch (error) {
       console.error("Erro ao enviar inscrição:", error)
-      alert("Erro ao enviar inscrição. Tente novamente.")
+      alert("Erro ao realizar inscrição. Tente novamente.")
     } finally {
-      setLoading(false)
+      setSubmitting(false)
     }
   }
 
-  const handleInputChange = (field: string, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }))
+  const handleInputChange = (fieldId: string, value: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      [fieldId]: value,
+    }))
   }
 
+  const vagasDisponiveis = landingPage.capacidade - landingPage.inscricoes
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-orange-50">
-      {/* Header */}
-      <div className="bg-white/80 backdrop-blur-md shadow-soft border-b border-gray-100">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex items-center justify-center space-x-3">
-            <div className="relative">
-              <Heart className="h-8 w-8 text-orange-500" />
-              <div className="absolute inset-0 bg-orange-400 rounded-full blur-lg opacity-20"></div>
-            </div>
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">
-              Projeto Metanoia
-            </h1>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-4xl mx-auto">
+          {/* Header */}
+          <div className="text-center mb-8">
+            <h1 className="text-4xl font-bold text-gray-900 mb-4">{landingPage.titulo}</h1>
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto">{landingPage.descricao}</p>
           </div>
-        </div>
-      </div>
 
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        {/* Title */}
-        <div className="text-center mb-12">
-          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">{landingPage.title}</h1>
-        </div>
-
-        {/* Video Section */}
-        <div className="mb-12">
-          <div className="relative w-full" style={{ paddingBottom: "56.25%" }}>
-            <iframe
-              src={landingPage.videoUrl}
-              className="absolute top-0 left-0 w-full h-full rounded-2xl shadow-2xl"
-              frameBorder="0"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-            />
-          </div>
-        </div>
-
-        {/* Description */}
-        <div className="mb-12">
-          <Card className="border-0 shadow-soft bg-white/80 backdrop-blur-sm">
-            <CardContent className="p-8">
-              <div className="prose prose-lg max-w-none text-gray-700">
-                {landingPage.description.split("\n").map((paragraph, index) => (
-                  <p key={index} className="mb-4 leading-relaxed">
-                    {paragraph}
-                  </p>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Form Section */}
-        <div className="max-w-2xl mx-auto">
-          <Card className="border-0 shadow-2xl bg-white/90 backdrop-blur-sm">
-            <CardHeader className="text-center pb-6">
-              <div className="mx-auto w-16 h-16 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center mb-4">
-                {submitted ? <CheckCircle className="h-8 w-8 text-white" /> : <User className="h-8 w-8 text-white" />}
-              </div>
-              <CardTitle className="text-2xl font-bold text-gray-900">
-                {submitted ? "Inscrição Confirmada!" : "Faça sua Inscrição"}
-              </CardTitle>
-              {!submitted && <p className="text-gray-600 mt-2">Preencha seus dados para participar</p>}
-            </CardHeader>
-
-            <CardContent className="px-8 pb-8">
-              {submitted ? (
-                <div className="text-center space-y-4">
-                  <div className="bg-green-50 border border-green-200 rounded-xl p-6">
-                    <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-4" />
-                    <h3 className="text-lg font-semibold text-green-800 mb-2">Obrigado pela sua inscrição!</h3>
-                    <p className="text-green-700">Recebemos seus dados com sucesso. Em breve entraremos em contato.</p>
-                  </div>
-
-                  <div className="text-sm text-gray-600">
-                    <p>
-                      <strong>Nome:</strong> {formData.name}
-                    </p>
-                    <p>
-                      <strong>WhatsApp:</strong> {formData.whatsapp}
-                    </p>
-                    <p>
-                      <strong>Email:</strong> {formData.email}
-                    </p>
-                    <p>
-                      <strong>Idade:</strong> {formData.age} anos
-                    </p>
-                  </div>
+          <div className="grid md:grid-cols-2 gap-8">
+            {/* Informações do Evento */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Calendar className="h-5 w-5" />
+                  Informações do Evento
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <Calendar className="h-4 w-4 text-gray-500" />
+                  <span>{new Date(landingPage.dataEvento).toLocaleDateString("pt-BR")}</span>
                 </div>
-              ) : (
-                <form onSubmit={handleSubmit} className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <Label htmlFor="name" className="flex items-center space-x-2">
-                        <User className="h-4 w-4 text-gray-500" />
-                        <span>Nome Completo</span>
-                      </Label>
-                      <Input
-                        id="name"
-                        type="text"
-                        value={formData.name}
-                        onChange={(e) => handleInputChange("name", e.target.value)}
-                        placeholder="Seu nome completo"
-                        required
-                        className="mt-2"
-                      />
-                    </div>
 
-                    <div>
-                      <Label htmlFor="age" className="flex items-center space-x-2">
-                        <Calendar className="h-4 w-4 text-gray-500" />
-                        <span>Idade</span>
-                      </Label>
-                      <Input
-                        id="age"
-                        type="number"
-                        value={formData.age}
-                        onChange={(e) => handleInputChange("age", e.target.value)}
-                        placeholder="Sua idade"
-                        min="1"
-                        max="120"
-                        required
-                        className="mt-2"
-                      />
-                    </div>
+                <div className="flex items-center gap-3">
+                  <Clock className="h-4 w-4 text-gray-500" />
+                  <span>{landingPage.horario}</span>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <MapPin className="h-4 w-4 text-gray-500" />
+                  <span>{landingPage.local}</span>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <Users className="h-4 w-4 text-gray-500" />
+                  <span>
+                    {landingPage.inscricoes} / {landingPage.capacidade} inscritos
+                  </span>
+                </div>
+
+                <div className="pt-4">
+                  {vagasDisponiveis > 0 ? (
+                    <Badge variant="default" className="bg-green-100 text-green-800">
+                      {vagasDisponiveis} vagas disponíveis
+                    </Badge>
+                  ) : (
+                    <Badge variant="destructive">Esgotado</Badge>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Formulário de Inscrição */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Inscreva-se</CardTitle>
+                <CardDescription>Preencha os dados abaixo para se inscrever no evento</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {vagasDisponiveis > 0 ? (
+                  <form onSubmit={handleSubmit} className="space-y-4">
+                    {landingPage.campos.map((campo) => (
+                      <div key={campo.id}>
+                        <Label htmlFor={campo.id}>
+                          {campo.nome}
+                          {campo.obrigatorio && <span className="text-red-500 ml-1">*</span>}
+                        </Label>
+
+                        {campo.tipo === "textarea" ? (
+                          <Textarea
+                            id={campo.id}
+                            placeholder={campo.placeholder}
+                            value={formData[campo.id] || ""}
+                            onChange={(e) => handleInputChange(campo.id, e.target.value)}
+                            required={campo.obrigatorio}
+                          />
+                        ) : (
+                          <Input
+                            id={campo.id}
+                            type={campo.tipo === "email" ? "email" : campo.tipo === "telefone" ? "tel" : "text"}
+                            placeholder={campo.placeholder}
+                            value={formData[campo.id] || ""}
+                            onChange={(e) => handleInputChange(campo.id, e.target.value)}
+                            required={campo.obrigatorio}
+                          />
+                        )}
+                      </div>
+                    ))}
+
+                    <Button type="submit" className="w-full" disabled={submitting}>
+                      {submitting ? "Enviando..." : "Realizar Inscrição"}
+                    </Button>
+                  </form>
+                ) : (
+                  <div className="text-center py-8">
+                    <p className="text-gray-600 mb-4">Infelizmente as vagas para este evento estão esgotadas.</p>
+                    <p className="text-sm text-gray-500">Entre em contato conosco para mais informações.</p>
                   </div>
-
-                  <div>
-                    <Label htmlFor="whatsapp" className="flex items-center space-x-2">
-                      <Phone className="h-4 w-4 text-gray-500" />
-                      <span>WhatsApp</span>
-                    </Label>
-                    <Input
-                      id="whatsapp"
-                      type="tel"
-                      value={formData.whatsapp}
-                      onChange={(e) => handleInputChange("whatsapp", e.target.value)}
-                      placeholder="(11) 99999-9999"
-                      required
-                      className="mt-2"
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="email" className="flex items-center space-x-2">
-                      <Mail className="h-4 w-4 text-gray-500" />
-                      <span>Email</span>
-                    </Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      value={formData.email}
-                      onChange={(e) => handleInputChange("email", e.target.value)}
-                      placeholder="seu@email.com"
-                      required
-                      className="mt-2"
-                    />
-                  </div>
-
-                  <Button
-                    type="submit"
-                    disabled={loading}
-                    className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-semibold py-3 text-lg rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
-                  >
-                    {loading ? "Enviando..." : "Confirmar Inscrição"}
-                  </Button>
-                </form>
-              )}
-            </CardContent>
-          </Card>
+                )}
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
     </div>

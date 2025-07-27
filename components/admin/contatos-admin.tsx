@@ -19,7 +19,7 @@ interface Contato {
   status: "novo" | "respondido" | "arquivado"
 }
 
-export default function ContatosAdmin() {
+export function ContatosAdmin() {
   const [contatos, setContatos] = useState<Contato[]>([])
   const [loading, setLoading] = useState(false)
 
@@ -177,3 +177,5 @@ export default function ContatosAdmin() {
     </div>
   )
 }
+
+export default ContatosAdmin

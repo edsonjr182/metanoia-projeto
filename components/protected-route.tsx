@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { useAuth } from "@/contexts/auth-context"
 import LoginForm from "@/components/auth/login-form"
 
@@ -9,7 +8,7 @@ interface ProtectedRouteProps {
   children: React.ReactNode
 }
 
-export default function ProtectedRoute({ children }: ProtectedRouteProps) {
+export function ProtectedRoute({ children }: ProtectedRouteProps) {
   const { user, loading } = useAuth()
 
   if (loading) {
@@ -26,3 +25,5 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
 
   return <>{children}</>
 }
+
+export default ProtectedRoute

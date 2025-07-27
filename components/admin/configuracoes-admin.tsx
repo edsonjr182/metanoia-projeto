@@ -43,7 +43,7 @@ interface ConfiguracoesSite {
   }
 }
 
-export default function ConfiguracoesAdmin() {
+export function ConfiguracoesAdmin() {
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
   const [configuracoes, setConfiguracoes] = useState<ConfiguracoesSite>({
@@ -369,3 +369,5 @@ export default function ConfiguracoesAdmin() {
     </div>
   )
 }
+
+export default ConfiguracoesAdmin

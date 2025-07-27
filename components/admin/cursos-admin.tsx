@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -26,7 +25,7 @@ interface Curso {
   gratuito: boolean
 }
 
-export default function CursosAdmin() {
+export function CursosAdmin() {
   const [cursos, setCursos] = useState<Curso[]>([])
   const [loading, setLoading] = useState(false)
   const [showForm, setShowForm] = useState(false)
@@ -287,3 +286,5 @@ export default function CursosAdmin() {
     </div>
   )
 }
+
+export default CursosAdmin

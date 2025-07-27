@@ -1,103 +1,188 @@
 "use client"
-import { useState, useEffect } from "react"
-import type React from "react"
 
+import type React from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Plus, QrCode, Users, ExternalLink, Trash2, Edit } from "lucide-react"
+import { Switch } from "@/components/ui/switch"
+import { Plus, Edit, Trash2, ExternalLink, Users, Calendar, MapPin, Eye } from "lucide-react"
+import { collection, addDoc, getDocs, deleteDoc, doc, updateDoc, query, orderBy } from "firebase/firestore"
+import { db } from "@/lib/firebase"
+
+interface Campo {
+  id: string
+  nome: string
+  tipo: "texto" | "email" | "telefone" | "textarea"
+  obrigatorio: boolean
+  placeholder: string
+}
 
 interface LandingPage {
   id: string
-  title: string
-  slug: string
-  videoUrl: string
-  description: string
-  createdAt: any
-  submissionsCount?: number
+  titulo: string
+  descricao: string
+  dataEvento: string
+  horario: string
+  local: string
+  capacidade: number
+  inscricoes: number
+  ativo: boolean
+  campos: Campo[]
 }
 
-interface Submission {
-  id: string
-  landingPageId: string
-  name: string
-  whatsapp: string
-  email: string
-  age: string
-  createdAt: any
-}
-
-export default function LandingPagesAdmin() {
+export function LandingPagesAdmin() {
   const [landingPages, setLandingPages] = useState<LandingPage[]>([])
-  const [submissions, setSubmissions] = useState<Submission[]>([])
-  const [selectedLandingPage, setSelectedLandingPage] = useState<string>("")
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
-  const [editingLandingPage, setEditingLandingPage] = useState<LandingPage | null>(null)
   const [loading, setLoading] = useState(false)
-
+  const [showForm, setShowForm] = useState(false)
+  const [editingPage, setEditingPage] = useState<LandingPage | null>(null)
   const [formData, setFormData] = useState({
-    title: "",
-    slug: "",
-    videoUrl: "",
-    description: "",
+    titulo: "",
+    descricao: "",
+    dataEvento: "",
+    horario: "",
+    local: "",
+    capacidade: 50,
+    ativo: true,
   })
+  const [campos, setCampos] = useState<Campo[]>([
+    { id: "nome", nome: "Nome Completo", tipo: "texto", obrigatorio: true, placeholder: "Seu nome completo" },
+    { id: "email", nome: "Email", tipo: "email", obrigatorio: true, placeholder: "seu@email.com" },
+    { id: "telefone", nome: "Telefone", tipo: "telefone", obrigatorio: true, placeholder: "(11) 99999-9999" },
+  ])
 
   useEffect(() => {
     fetchLandingPages()
-    fetchSubmissions()
   }, [])
 
   const fetchLandingPages = async () => {
     try {
-      const { db } = await import("@/lib/firebase")
-      const { collection, getDocs, query, orderBy, where } = await import("firebase/firestore")
-
-      const q = query(collection(db, "landingPages"), orderBy("createdAt", "desc"))
+      const q = query(collection(db, "landingPages"), orderBy("dataEvento", "desc"))
       const querySnapshot = await getDocs(q)
-      const pages = querySnapshot.docs.map((doc) => ({
+      const pagesData = querySnapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
       })) as LandingPage[]
-
-      // Count submissions for each landing page
-      for (const page of pages) {
-        const submissionsQuery = query(collection(db, "landingPageSubmissions"), where("landingPageId", "==", page.id))
-        const submissionsSnapshot = await getDocs(submissionsQuery)
-        page.submissionsCount = submissionsSnapshot.size
-      }
-
-      setLandingPages(pages)
+      setLandingPages(pagesData)
     } catch (error) {
       console.error("Erro ao buscar landing pages:", error)
     }
   }
 
-  const fetchSubmissions = async () => {
-    try {
-      const { db } = await import("@/lib/firebase")
-      const { collection, getDocs, query, orderBy } = await import("firebase/firestore")
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
 
-      const q = query(collection(db, "landingPageSubmissions"), orderBy("createdAt", "desc"))
-      const querySnapshot = await getDocs(q)
-      const subs = querySnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      })) as Submission[]
-      setSubmissions(subs)
+    try {
+      const pageData = {
+        ...formData,
+        campos,
+        inscricoes: editingPage ? editingPage.inscricoes : 0,
+      }
+
+      if (editingPage) {
+        await updateDoc(doc(db, "landingPages", editingPage.id), pageData)
+      } else {
+        await addDoc(collection(db, "landingPages"), pageData)
+      }
+
+      resetForm()
+      fetchLandingPages()
+      alert("Landing page salva com sucesso!")
     } catch (error) {
-      console.error("Erro ao buscar inscrições:", error)
+      console.error("Erro ao salvar landing page:", error)
+      alert("Erro ao salvar landing page. Tente novamente.")
+    } finally {
+      setLoading(false)
     }
   }
 
-  const createSlug = (title: string) => {
-    return title
+  const handleDelete = async (id: string) => {
+    if (confirm("Tem certeza que deseja excluir esta landing page?")) {
+      try {
+        await deleteDoc(doc(db, "landingPages", id))
+        fetchLandingPages()
+        alert("Landing page excluída com sucesso!")
+      } catch (error) {
+        console.error("Erro ao excluir landing page:", error)
+        alert("Erro ao excluir landing page.")
+      }
+    }
+  }
+
+  const handleEdit = (page: LandingPage) => {
+    setEditingPage(page)
+    setFormData({
+      titulo: page.titulo,
+      descricao: page.descricao,
+      dataEvento: page.dataEvento,
+      horario: page.horario,
+      local: page.local,
+      capacidade: page.capacidade,
+      ativo: page.ativo,
+    })
+    setCampos(page.campos || [])
+    setShowForm(true)
+  }
+
+  const resetForm = () => {
+    setFormData({
+      titulo: "",
+      descricao: "",
+      dataEvento: "",
+      horario: "",
+      local: "",
+      capacidade: 50,
+      ativo: true,
+    })
+    setCampos([
+      { id: "nome", nome: "Nome Completo", tipo: "texto", obrigatorio: true, placeholder: "Seu nome completo" },
+      { id: "email", nome: "Email", tipo: "email", obrigatorio: true, placeholder: "seu@email.com" },
+      { id: "telefone", nome: "Telefone", tipo: "telefone", obrigatorio: true, placeholder: "(11) 99999-9999" },
+    ])
+    setEditingPage(null)
+    setShowForm(false)
+  }
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target
+    setFormData((prev) => ({
+      ...prev,
+      [name]: name === "capacidade" ? Number.parseInt(value) || 0 : value,
+    }))
+  }
+
+  const addCampo = () => {
+    const newCampo: Campo = {
+      id: `campo_${Date.now()}`,
+      nome: "",
+      tipo: "texto",
+      obrigatorio: false,
+      placeholder: "",
+    }
+    setCampos([...campos, newCampo])
+  }
+
+  const updateCampo = (index: number, field: keyof Campo, value: any) => {
+    const updatedCampos = [...campos]
+    updatedCampos[index] = { ...updatedCampos[index], [field]: value }
+    setCampos(updatedCampos)
+  }
+
+  const removeCampo = (index: number) => {
+    setCampos(campos.filter((_, i) => i !== index))
+  }
+
+  const generateQRCode = (slug: string) => {
+    const url = `${window.location.origin}/${slug}`
+    return `https://chart.googleapis.com/chart?chs=200x200&cht=qr&chl=${encodeURIComponent(url)}`
+  }
+
+  const generateSlug = (titulo: string) => {
+    return titulo
       .toLowerCase()
       .normalize("NFD")
       .replace(/[\u0300-\u036f]/g, "")
@@ -107,418 +192,245 @@ export default function LandingPagesAdmin() {
       .trim()
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-
-    try {
-      const { db } = await import("@/lib/firebase")
-      const { collection, addDoc, getDocs, query, where } = await import("firebase/firestore")
-
-      // Check if slug already exists
-      const existingQuery = query(collection(db, "landingPages"), where("slug", "==", formData.slug))
-      const existingSnapshot = await getDocs(existingQuery)
-
-      if (!existingSnapshot.empty) {
-        alert("Esta URL já está em uso. Escolha outra.")
-        setLoading(false)
-        return
-      }
-
-      await addDoc(collection(db, "landingPages"), {
-        ...formData,
-        createdAt: new Date(),
-      })
-
-      alert("Landing page criada com sucesso!")
-      setFormData({ title: "", slug: "", videoUrl: "", description: "" })
-      setIsCreateModalOpen(false)
-      fetchLandingPages()
-    } catch (error) {
-      console.error("Erro ao criar landing page:", error)
-      alert("Erro ao criar landing page")
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const handleEdit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!editingLandingPage) return
-
-    setLoading(true)
-
-    try {
-      const { db } = await import("@/lib/firebase")
-      const { doc, updateDoc } = await import("firebase/firestore")
-
-      await updateDoc(doc(db, "landingPages", editingLandingPage.id), {
-        title: formData.title,
-        slug: formData.slug,
-        videoUrl: formData.videoUrl,
-        description: formData.description,
-      })
-
-      alert("Landing page atualizada com sucesso!")
-      setIsEditModalOpen(false)
-      setEditingLandingPage(null)
-      setFormData({ title: "", slug: "", videoUrl: "", description: "" })
-      fetchLandingPages()
-    } catch (error) {
-      console.error("Erro ao atualizar landing page:", error)
-      alert("Erro ao atualizar landing page")
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const handleDelete = async (id: string) => {
-    if (!confirm("Tem certeza que deseja excluir esta landing page?")) return
-
-    try {
-      const { db } = await import("@/lib/firebase")
-      const { doc, deleteDoc } = await import("firebase/firestore")
-
-      await deleteDoc(doc(db, "landingPages", id))
-      alert("Landing page excluída com sucesso!")
-      fetchLandingPages()
-    } catch (error) {
-      console.error("Erro ao excluir landing page:", error)
-      alert("Erro ao excluir landing page")
-    }
-  }
-
-  const generateQRCodeUrl = (slug: string) => {
-    const url = `${window.location.origin}/${slug}`
-    // Using Google Charts API for QR Code generation (no external dependency)
-    return `https://chart.googleapis.com/chart?chs=400x400&cht=qr&chl=${encodeURIComponent(url)}`
-  }
-
-  const downloadQRCode = async (slug: string, title: string) => {
-    try {
-      const qrUrl = generateQRCodeUrl(slug)
-      const link = document.createElement("a")
-      link.download = `qrcode-${slug}.png`
-      link.href = qrUrl
-      link.target = "_blank"
-      link.click()
-      alert("QR Code aberto em nova aba!")
-    } catch (error) {
-      console.error("Erro ao gerar QR Code:", error)
-      alert("Erro ao gerar QR Code")
-    }
-  }
-
-  const openEditModal = (landingPage: LandingPage) => {
-    setEditingLandingPage(landingPage)
-    setFormData({
-      title: landingPage.title,
-      slug: landingPage.slug,
-      videoUrl: landingPage.videoUrl,
-      description: landingPage.description,
-    })
-    setIsEditModalOpen(true)
-  }
-
-  const filteredSubmissions = selectedLandingPage
-    ? submissions.filter((sub) => sub.landingPageId === selectedLandingPage)
-    : submissions
-
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <div>
-          <h2 className="text-3xl font-bold text-gray-900">Landing Pages</h2>
-          <p className="text-gray-600 mt-2">Gerencie suas landing pages e acompanhe as inscrições</p>
-        </div>
+        <h2 className="text-2xl font-bold">Gerenciar Landing Pages</h2>
+        <Button onClick={() => setShowForm(true)}>
+          <Plus className="h-4 w-4 mr-2" />
+          Nova Landing Page
+        </Button>
+      </div>
 
-        <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
-          <DialogTrigger asChild>
-            <Button className="bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700">
-              <Plus className="h-4 w-4 mr-2" />
-              Nova Landing Page
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>Criar Nova Landing Page</DialogTitle>
-            </DialogHeader>
+      {showForm && (
+        <Card>
+          <CardHeader>
+            <CardTitle>{editingPage ? "Editar Landing Page" : "Nova Landing Page"}</CardTitle>
+            <CardDescription>Crie uma página personalizada para capturar inscrições de eventos</CardDescription>
+          </CardHeader>
+          <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="title">Título</Label>
-                  <Input
-                    id="title"
-                    value={formData.title}
-                    onChange={(e) => {
-                      const title = e.target.value
-                      setFormData((prev) => ({
-                        ...prev,
-                        title,
-                        slug: createSlug(title),
-                      }))
-                    }}
-                    placeholder="Ex: Palestra sobre Mindset"
-                    required
-                  />
+                  <Label htmlFor="titulo">Título do Evento</Label>
+                  <Input id="titulo" name="titulo" value={formData.titulo} onChange={handleChange} required />
                 </div>
-                <div>
-                  <Label htmlFor="slug">URL Personalizada</Label>
-                  <Input
-                    id="slug"
-                    value={formData.slug}
-                    onChange={(e) => setFormData((prev) => ({ ...prev, slug: e.target.value }))}
-                    placeholder="palestra-mindset"
-                    required
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id="ativo"
+                    checked={formData.ativo}
+                    onCheckedChange={(checked) => setFormData((prev) => ({ ...prev, ativo: checked }))}
                   />
-                  <p className="text-xs text-gray-500 mt-1">Será acessível em: /{formData.slug}</p>
+                  <Label htmlFor="ativo">Página ativa</Label>
                 </div>
               </div>
 
               <div>
-                <Label htmlFor="videoUrl">URL do Vídeo</Label>
-                <Input
-                  id="videoUrl"
-                  value={formData.videoUrl}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, videoUrl: e.target.value }))}
-                  placeholder="https://www.youtube.com/embed/..."
-                  required
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="description">Descrição</Label>
+                <Label htmlFor="descricao">Descrição</Label>
                 <Textarea
-                  id="description"
-                  value={formData.description}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
-                  placeholder="Descreva o conteúdo da sua landing page..."
-                  rows={4}
+                  id="descricao"
+                  name="descricao"
+                  value={formData.descricao}
+                  onChange={handleChange}
+                  rows={3}
                   required
                 />
               </div>
 
-              <div className="flex justify-end space-x-4">
-                <Button type="button" variant="outline" onClick={() => setIsCreateModalOpen(false)}>
-                  Cancelar
-                </Button>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <Label htmlFor="dataEvento">Data do Evento</Label>
+                  <Input
+                    id="dataEvento"
+                    name="dataEvento"
+                    type="date"
+                    value={formData.dataEvento}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="horario">Horário</Label>
+                  <Input
+                    id="horario"
+                    name="horario"
+                    value={formData.horario}
+                    onChange={handleChange}
+                    placeholder="Ex: 19:00"
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="capacidade">Capacidade</Label>
+                  <Input
+                    id="capacidade"
+                    name="capacidade"
+                    type="number"
+                    value={formData.capacidade}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div>
+                <Label htmlFor="local">Local</Label>
+                <Input id="local" name="local" value={formData.local} onChange={handleChange} required />
+              </div>
+
+              {/* Campos do Formulário */}
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <Label className="text-base font-semibold">Campos do Formulário</Label>
+                  <Button type="button" variant="outline" size="sm" onClick={addCampo}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Adicionar Campo
+                  </Button>
+                </div>
+
+                {campos.map((campo, index) => (
+                  <Card key={campo.id} className="p-4">
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                      <div>
+                        <Label>Nome do Campo</Label>
+                        <Input
+                          value={campo.nome}
+                          onChange={(e) => updateCampo(index, "nome", e.target.value)}
+                          placeholder="Ex: Nome Completo"
+                        />
+                      </div>
+                      <div>
+                        <Label>Tipo</Label>
+                        <select
+                          className="w-full p-2 border rounded-md"
+                          value={campo.tipo}
+                          onChange={(e) => updateCampo(index, "tipo", e.target.value)}
+                        >
+                          <option value="texto">Texto</option>
+                          <option value="email">Email</option>
+                          <option value="telefone">Telefone</option>
+                          <option value="textarea">Texto Longo</option>
+                        </select>
+                      </div>
+                      <div>
+                        <Label>Placeholder</Label>
+                        <Input
+                          value={campo.placeholder}
+                          onChange={(e) => updateCampo(index, "placeholder", e.target.value)}
+                          placeholder="Ex: Digite seu nome"
+                        />
+                      </div>
+                      <div className="flex items-end gap-2">
+                        <div className="flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            checked={campo.obrigatorio}
+                            onChange={(e) => updateCampo(index, "obrigatorio", e.target.checked)}
+                          />
+                          <Label className="text-sm">Obrigatório</Label>
+                        </div>
+                        <Button type="button" variant="outline" size="sm" onClick={() => removeCampo(index)}>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+
+              <div className="flex gap-2">
                 <Button type="submit" disabled={loading}>
-                  {loading ? "Criando..." : "Criar Landing Page"}
+                  {loading ? "Salvando..." : "Salvar"}
+                </Button>
+                <Button type="button" variant="outline" onClick={resetForm}>
+                  Cancelar
                 </Button>
               </div>
             </form>
-          </DialogContent>
-        </Dialog>
-      </div>
+          </CardContent>
+        </Card>
+      )}
 
-      <Tabs defaultValue="pages" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="pages">Landing Pages ({landingPages.length})</TabsTrigger>
-          <TabsTrigger value="submissions">Inscrições ({submissions.length})</TabsTrigger>
-        </TabsList>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {landingPages.map((page) => {
+          const slug = generateSlug(page.titulo)
+          const vagasDisponiveis = page.capacidade - page.inscricoes
 
-        <TabsContent value="pages" className="space-y-6">
-          <div className="grid gap-6">
-            {landingPages.map((page) => (
-              <Card key={page.id} className="border-0 shadow-soft">
-                <CardHeader>
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <CardTitle className="text-xl">{page.title}</CardTitle>
-                      <div className="flex items-center space-x-4 mt-2">
-                        <Badge variant="outline" className="text-purple-600 border-purple-200">
-                          /{page.slug}
-                        </Badge>
-                        <Badge variant="outline" className="text-blue-600 border-blue-200">
-                          <Users className="h-3 w-3 mr-1" />
-                          {page.submissionsCount || 0} inscrições
-                        </Badge>
-                      </div>
-                    </div>
-                    <div className="flex space-x-2">
-                      <Button variant="outline" size="sm" onClick={() => window.open(`/${page.slug}`, "_blank")}>
-                        <ExternalLink className="h-4 w-4" />
-                      </Button>
-                      <Button variant="outline" size="sm" onClick={() => openEditModal(page)}>
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleDelete(page.id)}
-                        className="text-red-600 hover:text-red-700"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
+          return (
+            <Card key={page.id}>
+              <CardHeader>
+                <div className="flex justify-between items-start">
+                  <div className="flex gap-2">
+                    <Badge variant={page.ativo ? "default" : "secondary"}>{page.ativo ? "Ativa" : "Inativa"}</Badge>
+                    {vagasDisponiveis <= 0 && <Badge variant="destructive">Esgotado</Badge>}
                   </div>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-gray-600 mb-4">{page.description}</p>
-
-                  <div className="flex items-center justify-between">
-                    <div className="text-sm text-gray-500">
-                      Criado em: {page.createdAt?.toDate?.()?.toLocaleDateString("pt-BR") || "Data não disponível"}
-                    </div>
-
-                    <div className="flex space-x-2">
-                      <Button variant="outline" size="sm" onClick={() => downloadQRCode(page.slug, page.title)}>
-                        <QrCode className="h-4 w-4 mr-2" />
-                        Ver QR Code
-                      </Button>
-                    </div>
+                  <div className="flex gap-2">
+                    <Button size="sm" variant="outline" onClick={() => handleEdit(page)}>
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={() => handleDelete(page.id)}>
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
                   </div>
-                </CardContent>
-              </Card>
-            ))}
-
-            {landingPages.length === 0 && (
-              <Card className="border-0 shadow-soft">
-                <CardContent className="text-center py-12">
-                  <QrCode className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhuma landing page criada</h3>
-                  <p className="text-gray-600 mb-4">Crie sua primeira landing page para começar a capturar leads</p>
-                  <Button onClick={() => setIsCreateModalOpen(true)}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Criar Landing Page
-                  </Button>
-                </CardContent>
-              </Card>
-            )}
-          </div>
-        </TabsContent>
-
-        <TabsContent value="submissions" className="space-y-6">
-          <div className="flex items-center space-x-4">
-            <Label htmlFor="landingPageFilter">Filtrar por Landing Page:</Label>
-            <select
-              id="landingPageFilter"
-              value={selectedLandingPage}
-              onChange={(e) => setSelectedLandingPage(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-md"
-            >
-              <option value="">Todas as landing pages</option>
-              {landingPages.map((page) => (
-                <option key={page.id} value={page.id}>
-                  {page.title}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <Card className="border-0 shadow-soft">
-            <CardHeader>
-              <CardTitle>
-                Inscrições {selectedLandingPage && `- ${landingPages.find((p) => p.id === selectedLandingPage)?.title}`}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Nome</TableHead>
-                    <TableHead>WhatsApp</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Idade</TableHead>
-                    <TableHead>Landing Page</TableHead>
-                    <TableHead>Data</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredSubmissions.map((submission) => {
-                    const landingPage = landingPages.find((p) => p.id === submission.landingPageId)
-                    return (
-                      <TableRow key={submission.id}>
-                        <TableCell className="font-medium">{submission.name}</TableCell>
-                        <TableCell>{submission.whatsapp}</TableCell>
-                        <TableCell>{submission.email}</TableCell>
-                        <TableCell>{submission.age}</TableCell>
-                        <TableCell>
-                          <Badge variant="outline">{landingPage?.title || "Landing page removida"}</Badge>
-                        </TableCell>
-                        <TableCell>
-                          {submission.createdAt?.toDate?.()?.toLocaleDateString("pt-BR") || "Data não disponível"}
-                        </TableCell>
-                      </TableRow>
-                    )
-                  })}
-                </TableBody>
-              </Table>
-
-              {filteredSubmissions.length === 0 && (
-                <div className="text-center py-8">
-                  <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhuma inscrição encontrada</h3>
-                  <p className="text-gray-600">
-                    As inscrições aparecerão aqui quando os usuários preencherem os formulários
-                  </p>
                 </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+                <CardTitle className="text-lg">{page.titulo}</CardTitle>
+                <CardDescription className="line-clamp-2">{page.descricao}</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3 text-sm">
+                  <div className="flex items-center">
+                    <Calendar className="h-4 w-4 mr-2 text-orange-500" />
+                    {new Date(page.dataEvento).toLocaleDateString("pt-BR")} - {page.horario}
+                  </div>
+                  <div className="flex items-center">
+                    <MapPin className="h-4 w-4 mr-2 text-orange-500" />
+                    {page.local}
+                  </div>
+                  <div className="flex items-center">
+                    <Users className="h-4 w-4 mr-2 text-orange-500" />
+                    {page.inscricoes} / {page.capacidade} inscritos
+                  </div>
+                </div>
 
-      {/* Edit Modal */}
-      <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Editar Landing Page</DialogTitle>
-          </DialogHeader>
-          <form onSubmit={handleEdit} className="space-y-6">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="edit-title">Título</Label>
-                <Input
-                  id="edit-title"
-                  value={formData.title}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, title: e.target.value }))}
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="edit-slug">URL Personalizada</Label>
-                <Input
-                  id="edit-slug"
-                  value={formData.slug}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, slug: e.target.value }))}
-                  required
-                />
-              </div>
-            </div>
+                <div className="mt-4 space-y-2">
+                  <div className="flex gap-2">
+                    <Button size="sm" variant="outline" asChild>
+                      <a href={`/${slug}`} target="_blank" rel="noopener noreferrer">
+                        <Eye className="h-4 w-4 mr-1" />
+                        Ver Página
+                      </a>
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        const url = `${window.location.origin}/${slug}`
+                        navigator.clipboard.writeText(url)
+                        alert("Link copiado!")
+                      }}
+                    >
+                      <ExternalLink className="h-4 w-4 mr-1" />
+                      Copiar Link
+                    </Button>
+                  </div>
 
-            <div>
-              <Label htmlFor="edit-videoUrl">URL do Vídeo</Label>
-              <Input
-                id="edit-videoUrl"
-                value={formData.videoUrl}
-                onChange={(e) => setFormData((prev) => ({ ...prev, videoUrl: e.target.value }))}
-                required
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="edit-description">Descrição</Label>
-              <Textarea
-                id="edit-description"
-                value={formData.description}
-                onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
-                rows={4}
-                required
-              />
-            </div>
-
-            <div className="flex justify-end space-x-4">
-              <Button type="button" variant="outline" onClick={() => setIsEditModalOpen(false)}>
-                Cancelar
-              </Button>
-              <Button type="submit" disabled={loading}>
-                {loading ? "Salvando..." : "Salvar Alterações"}
-              </Button>
-            </div>
-          </form>
-        </DialogContent>
-      </Dialog>
+                  {/* QR Code */}
+                  <div className="text-center">
+                    <img
+                      src={generateQRCode(slug) || "/placeholder.svg"}
+                      alt="QR Code"
+                      className="mx-auto w-24 h-24 border rounded"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">QR Code da página</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )
+        })}
+      </div>
     </div>
   )
 }
+
+export default LandingPagesAdmin

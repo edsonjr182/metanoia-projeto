@@ -1,31 +1,36 @@
 import { notFound } from "next/navigation"
-import { collection, query, where, getDocs } from "firebase/firestore"
+import { doc, getDoc } from "firebase/firestore"
 import { db } from "@/lib/firebase"
 import LandingPageClient from "./landing-page-client"
 
 interface LandingPageData {
   id: string
-  title: string
-  slug: string
-  videoUrl: string
-  description: string
-  createdAt: any
+  titulo: string
+  descricao: string
+  dataEvento: string
+  horario: string
+  local: string
+  capacidade: number
+  inscricoes: number
+  ativo: boolean
+  campos: Array<{
+    id: string
+    nome: string
+    tipo: "texto" | "email" | "telefone" | "textarea"
+    obrigatorio: boolean
+    placeholder: string
+  }>
 }
 
 async function getLandingPage(slug: string): Promise<LandingPageData | null> {
   try {
-    const q = query(collection(db, "landingPages"), where("slug", "==", slug))
-    const querySnapshot = await getDocs(q)
+    const docRef = doc(db, "landingPages", slug)
+    const docSnap = await getDoc(docRef)
 
-    if (querySnapshot.empty) {
-      return null
+    if (docSnap.exists() && docSnap.data().ativo) {
+      return { id: docSnap.id, ...docSnap.data() } as LandingPageData
     }
-
-    const doc = querySnapshot.docs[0]
-    return {
-      id: doc.id,
-      ...doc.data(),
-    } as LandingPageData
+    return null
   } catch (error) {
     console.error("Erro ao buscar landing page:", error)
     return null
@@ -40,19 +45,4 @@ export default async function LandingPage({ params }: { params: { slug: string }
   }
 
   return <LandingPageClient landingPage={landingPage} />
-}
-
-export async function generateMetadata({ params }: { params: { slug: string } }) {
-  const landingPage = await getLandingPage(params.slug)
-
-  if (!landingPage) {
-    return {
-      title: "Página não encontrada - Projeto Metanoia",
-    }
-  }
-
-  return {
-    title: `${landingPage.title} - Projeto Metanoia`,
-    description: landingPage.description,
-  }
 }

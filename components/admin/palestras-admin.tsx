@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -24,11 +23,11 @@ interface Palestra {
   palestrante: string
   vagas: number
   categoria: string
-  modalidade: "presencial" | "online" // Novo campo
-  linkPalestra: string // Novo campo
+  modalidade: "presencial" | "online"
+  linkPalestra: string
 }
 
-export default function PalestrasAdmin() {
+export function PalestrasAdmin() {
   const [palestras, setPalestras] = useState<Palestra[]>([])
   const [loading, setLoading] = useState(false)
   const [showForm, setShowForm] = useState(false)
@@ -42,8 +41,8 @@ export default function PalestrasAdmin() {
     palestrante: "",
     vagas: 0,
     categoria: "",
-    modalidade: "presencial", // Novo campo
-    linkPalestra: "", // Novo campo
+    modalidade: "presencial",
+    linkPalestra: "",
   })
 
   useEffect(() => {
@@ -106,8 +105,8 @@ export default function PalestrasAdmin() {
       palestrante: palestra.palestrante,
       vagas: palestra.vagas,
       categoria: palestra.categoria,
-      modalidade: palestra.modalidade || "presencial", // Novo campo
-      linkPalestra: palestra.linkPalestra || "", // Novo campo
+      modalidade: palestra.modalidade || "presencial",
+      linkPalestra: palestra.linkPalestra || "",
     })
     setShowForm(true)
   }
@@ -122,8 +121,8 @@ export default function PalestrasAdmin() {
       palestrante: "",
       vagas: 0,
       categoria: "",
-      modalidade: "presencial", // Novo campo
-      linkPalestra: "", // Novo campo
+      modalidade: "presencial",
+      linkPalestra: "",
     })
     setEditingPalestra(null)
     setShowForm(false)
@@ -326,3 +325,5 @@ export default function PalestrasAdmin() {
     </div>
   )
 }
+
+export default PalestrasAdmin

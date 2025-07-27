@@ -53,7 +53,7 @@ interface Usuario {
   role: "admin" | "usuario"
 }
 
-export default function UsuariosAdmin() {
+export function UsuariosAdmin() {
   const [usuarios, setUsuarios] = useState<Usuario[]>([])
   const [filteredUsuarios, setFilteredUsuarios] = useState<Usuario[]>([])
   const [loading, setLoading] = useState(true)
@@ -461,3 +461,5 @@ export default function UsuariosAdmin() {
     </div>
   )
 }
+
+export default UsuariosAdmin

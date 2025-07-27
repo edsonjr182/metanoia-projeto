@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -28,7 +27,7 @@ interface Conteudo {
   autor?: string
 }
 
-export default function ConteudosAdmin() {
+export function ConteudosAdmin() {
   const [conteudosJovens, setConteudosJovens] = useState<Conteudo[]>([])
   const [conteudosFamilias, setConteudosFamilias] = useState<Conteudo[]>([])
   const [loading, setLoading] = useState(false)
@@ -349,3 +348,5 @@ export default function ConteudosAdmin() {
     </div>
   )
 }
+
+export default ConteudosAdmin
