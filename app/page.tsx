@@ -1,374 +1,236 @@
 "use client"
 
+import { useEffect, useState } from "react"
+import { collection, getDocs } from "firebase/firestore"
+import { db } from "@/lib/firebase"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Heart, Users, BookOpen, Calendar, ArrowRight, Star, Quote, CheckCircle } from "lucide-react"
+import { Heart, Users, BookOpen, Lightbulb, ArrowRight, Sparkles, TrendingUp } from "lucide-react"
 import Link from "next/link"
-import { useConfiguracoes } from "@/hooks/use-configuracoes"
+import TopBanner from "@/components/top-banner"
+import Navbar from "@/components/navbar"
+import Footer from "@/components/footer"
 
 export default function HomePage() {
-  const { configuracoes, loading } = useConfiguracoes()
+  const [stats, setStats] = useState({
+    jovensImpactados: "500+",
+    palestrasRealizadas: "50+",
+    parceriasAtivas: "20+",
+  })
+  const [loading, setLoading] = useState(true)
 
+  useEffect(() => {
+    fetchStats()
+  }, [])
+
+  const fetchStats = async () => {
+    try {
+      // Buscar palestras
+      const palestrasSnapshot = await getDocs(collection(db, "palestras"))
+      const palestrasCount = palestrasSnapshot.size
+
+      // Buscar cursos (como proxy para parcerias)
+      const cursosSnapshot = await getDocs(collection(db, "cursos"))
+      const cursosCount = cursosSnapshot.size
+
+      // Buscar contatos (como proxy para jovens impactados)
+      const contatosSnapshot = await getDocs(collection(db, "contatos"))
+      const contatosCount = contatosSnapshot.size
+
+      setStats({
+        jovensImpactados: contatosCount > 0 ? `${contatosCount * 10}+` : "500+",
+        palestrasRealizadas: palestrasCount > 0 ? `${palestrasCount}+` : "50+",
+        parceriasAtivas: cursosCount > 0 ? `${cursosCount}+` : "20+",
+      })
+    } catch (error) {
+      console.error("Erro ao buscar estatísticas:", error)
+    } finally {
+      setLoading(false)
+    }
+  }
   return (
-    <div className="min-h-screen">
-      {/* Hero Section */}
-      <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
-        {/* Background Effects */}
-        <div className="absolute inset-0 bg-gradient-to-br from-orange-500/10 via-transparent to-blue-500/10"></div>
-        <div className="absolute inset-0 bg-dot-pattern opacity-20"></div>
+    <div className="min-h-screen overflow-hidden">
+      <TopBanner />
+      <Navbar />
 
-        {/* Floating Elements */}
-        <div className="absolute top-20 left-10 w-20 h-20 bg-orange-400/20 rounded-full blur-xl animate-float"></div>
-        <div className="absolute bottom-20 right-10 w-32 h-32 bg-blue-400/20 rounded-full blur-xl animate-float-delayed"></div>
+      {/* Hero Section - Redesigned with proper spacing */}
+      <section className="relative min-h-screen flex items-center justify-center pt-40 pb-20">
+        {/* Enhanced background with better gradients */}
+        <div className="absolute inset-0 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 -z-10">
+          <div className="absolute inset-0 bg-mesh-gradient opacity-30"></div>
+          <div className="absolute inset-0 bg-dot-pattern opacity-20"></div>
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/50 via-transparent to-transparent"></div>
+        </div>
 
-        <div className="relative z-10 content-width container-padding text-center">
-          <div className="max-w-4xl mx-auto space-y-8">
-            {/* Badge */}
-            <Badge className="px-6 py-2 bg-orange-500/10 text-orange-300 border-orange-400/20 rounded-full text-sm font-medium">
-              ✨ Transformando vidas desde 2020
+        {/* Floating elements with better positioning and z-index */}
+        <div className="absolute top-32 left-10 w-32 h-32 bg-gradient-to-br from-orange-400/20 to-orange-600/15 rounded-full blur-3xl animate-float -z-5"></div>
+        <div
+          className="absolute bottom-40 right-16 w-40 h-40 bg-gradient-to-br from-emerald-400/20 to-emerald-600/10 rounded-full blur-3xl animate-float -z-5"
+          style={{ animationDelay: "2s" }}
+        ></div>
+        <div
+          className="absolute top-1/2 left-1/4 w-24 h-24 bg-gradient-to-br from-blue-400/15 to-blue-600/8 rounded-full blur-3xl animate-float -z-5"
+          style={{ animationDelay: "4s" }}
+        ></div>
+        <div
+          className="absolute top-1/3 right-1/4 w-36 h-36 bg-gradient-to-br from-purple-400/20 to-purple-600/10 rounded-full blur-3xl animate-float -z-5"
+          style={{ animationDelay: "1s" }}
+        ></div>
+
+        <div className="relative z-10 content-width container-padding text-center max-w-7xl mx-auto">
+          <div className="animate-fade-in space-y-8">
+            <Badge className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-orange-500/10 to-orange-600/10 text-orange-300 border border-orange-400/20 hover:bg-orange-500/20 transition-all duration-500 text-sm font-medium backdrop-blur-xl rounded-full">
+              <Sparkles className="mr-3 h-5 w-5" />
+              Transformando Vidas desde 2020
             </Badge>
 
-            {/* Main Title */}
-            <h1 className="text-5xl md:text-7xl font-bold text-white leading-tight">
+            <h1 className="text-5xl md:text-7xl lg:text-8xl xl:text-9xl font-bold text-white leading-none tracking-tight">
               Projeto{" "}
-              <span className="bg-gradient-to-r from-orange-400 to-orange-600 bg-clip-text text-transparent">
-                Metanoia
+              <span className="relative inline-block">
+                <span className="text-gradient-orange animate-glow">Metanoia</span>
+                <div className="absolute -inset-2 bg-gradient-to-r from-orange-400/30 to-orange-600/30 rounded-2xl blur-xl opacity-50 animate-pulse-slow -z-10"></div>
               </span>
             </h1>
 
-            {/* Subtitle */}
-            <p className="text-xl md:text-2xl text-gray-300 max-w-3xl mx-auto leading-relaxed">
-              {loading ? "Carregando..." : configuracoes.sobre.descricao}
+            <p className="text-xl md:text-2xl lg:text-3xl text-gray-300 max-w-5xl mx-auto leading-relaxed font-light">
+              Transformando vidas através da{" "}
+              <span className="text-white font-semibold bg-gradient-to-r from-orange-400/20 to-orange-600/20 px-3 py-1 rounded-xl backdrop-blur-sm border border-orange-400/20">
+                educação
+              </span>
+              ,{" "}
+              <span className="text-white font-semibold bg-gradient-to-r from-emerald-400/20 to-emerald-600/20 px-3 py-1 rounded-xl backdrop-blur-sm border border-emerald-400/20">
+                esperança
+              </span>{" "}
+              e{" "}
+              <span className="text-white font-semibold bg-gradient-to-r from-blue-400/20 to-blue-600/20 px-3 py-1 rounded-xl backdrop-blur-sm border border-blue-400/20">
+                oportunidades
+              </span>
+              .<br />
+              <span className="text-white font-bold mt-4 block">Ajudamos jovens e adolescentes de periferia</span> a
+              voltarem a sonhar com o futuro.
             </p>
 
-            {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-8">
+            <div className="flex flex-col sm:flex-row gap-6 justify-center items-center pt-8 pb-16">
               <Link href="/sobre">
                 <Button
                   size="lg"
-                  className="group px-8 py-4 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white rounded-xl font-semibold shadow-glow-orange transition-all duration-500"
+                  className="group px-12 py-6 text-xl font-semibold bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white shadow-xl hover:shadow-glow-orange transition-all duration-500 rounded-3xl relative overflow-hidden"
+                >
+                  <span className="relative z-10 flex items-center">
+                    Conheça o Projeto
+                    <ArrowRight className="ml-4 h-6 w-6 group-hover:translate-x-2 transition-transform duration-300" />
+                  </span>
+                  <div className="absolute inset-0 bg-gradient-to-r from-orange-400 to-orange-500 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                </Button>
+              </Link>
+              <Link href="/contato">
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="group px-12 py-6 text-xl font-semibold text-white border-2 border-white/50 hover:border-white/80 bg-white/10 hover:bg-white/20 backdrop-blur-xl rounded-3xl transition-all duration-500 hover:shadow-xl"
                 >
                   <span className="flex items-center">
-                    Conheça Nossa História
-                    <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform duration-300" />
+                    Seja Parceiro
+                    <Heart className="ml-4 h-6 w-6 group-hover:scale-110 transition-transform duration-300" />
                   </span>
                 </Button>
               </Link>
-
-              <Link href="/contato">
-                <Button
-                  variant="outline"
-                  size="lg"
-                  className="px-8 py-4 border-2 border-white/20 text-white hover:bg-white/10 rounded-xl font-semibold backdrop-blur-xl transition-all duration-300 bg-transparent"
-                >
-                  Entre em Contato
-                </Button>
-              </Link>
             </div>
+          </div>
+        </div>
 
-            {/* Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 pt-16">
-              {[
-                { number: "500+", label: "Vidas Transformadas" },
-                { number: "50+", label: "Palestras Realizadas" },
-                { number: "20+", label: "Cursos Oferecidos" },
-                { number: "5", label: "Anos de Impacto" },
-              ].map((stat, index) => (
-                <div key={index} className="text-center">
-                  <div className="text-3xl md:text-4xl font-bold text-orange-400 mb-2">{stat.number}</div>
-                  <div className="text-gray-400 text-sm md:text-base">{stat.label}</div>
-                </div>
-              ))}
-            </div>
+        {/* Enhanced scroll indicator */}
+        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce-slow z-20">
+          <div className="w-8 h-14 border-2 border-white/40 rounded-full flex justify-center backdrop-blur-sm bg-white/5">
+            <div className="w-1.5 h-5 bg-gradient-to-b from-white/80 to-transparent rounded-full mt-2 animate-pulse-slow"></div>
           </div>
         </div>
       </section>
 
-      {/* About Section */}
-      <section className="py-24 bg-white">
-        <div className="content-width container-padding">
-          <div className="grid lg:grid-cols-2 gap-16 items-center">
-            <div className="space-y-8">
-              <div>
-                <Badge className="mb-4 px-4 py-2 bg-orange-100 text-orange-700 rounded-full">Sobre Nós</Badge>
-                <h2 className="text-4xl md:text-5xl font-bold text-slate-900 mb-6">
-                  Transformando Vidas Através da <span className="text-orange-500">Educação</span>
-                </h2>
-                <p className="text-xl text-gray-600 leading-relaxed">
-                  {loading ? "Carregando..." : configuracoes.sobre.missao}
-                </p>
-              </div>
+      {/* Features Section - Completely redesigned */}
+      <section className="section-padding bg-gradient-to-b from-gray-50 via-white to-gray-50 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-orange-50/50 via-transparent to-emerald-50/30"></div>
 
-              <div className="space-y-4">
-                {[
-                  "Educação de qualidade para todos",
-                  "Desenvolvimento de habilidades técnicas",
-                  "Apoio psicológico e emocional",
-                  "Inserção no mercado de trabalho",
-                ].map((item, index) => (
-                  <div key={index} className="flex items-center space-x-3">
-                    <CheckCircle className="h-6 w-6 text-orange-500 flex-shrink-0" />
-                    <span className="text-gray-700 text-lg">{item}</span>
-                  </div>
-                ))}
-              </div>
-
-              <Link href="/sobre">
-                <Button
-                  size="lg"
-                  className="group px-8 py-4 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white rounded-xl font-semibold shadow-medium transition-all duration-300"
-                >
-                  Saiba Mais
-                  <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform duration-300" />
-                </Button>
-              </Link>
-            </div>
-
-            <div className="relative">
-              <div className="absolute -inset-4 bg-gradient-to-r from-orange-400/30 to-orange-600/30 rounded-3xl blur-2xl opacity-30"></div>
-              <div className="relative bg-gradient-to-br from-orange-50 to-orange-100 rounded-3xl p-8 shadow-soft">
-                <div className="grid grid-cols-2 gap-6">
-                  <div className="text-center p-6 bg-white rounded-2xl shadow-soft">
-                    <Heart className="h-12 w-12 text-orange-500 mx-auto mb-4" />
-                    <h3 className="font-bold text-slate-900 mb-2">Missão</h3>
-                    <p className="text-gray-600 text-sm">Transformar vidas através da educação</p>
-                  </div>
-                  <div className="text-center p-6 bg-white rounded-2xl shadow-soft">
-                    <Users className="h-12 w-12 text-blue-500 mx-auto mb-4" />
-                    <h3 className="font-bold text-slate-900 mb-2">Comunidade</h3>
-                    <p className="text-gray-600 text-sm">Construindo laços fortes</p>
-                  </div>
-                  <div className="text-center p-6 bg-white rounded-2xl shadow-soft">
-                    <BookOpen className="h-12 w-12 text-green-500 mx-auto mb-4" />
-                    <h3 className="font-bold text-slate-900 mb-2">Educação</h3>
-                    <p className="text-gray-600 text-sm">Conhecimento para todos</p>
-                  </div>
-                  <div className="text-center p-6 bg-white rounded-2xl shadow-soft">
-                    <Star className="h-12 w-12 text-purple-500 mx-auto mb-4" />
-                    <h3 className="font-bold text-slate-900 mb-2">Excelência</h3>
-                    <p className="text-gray-600 text-sm">Qualidade em tudo</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Services Section */}
-      <section className="py-24 bg-gradient-to-br from-slate-50 to-gray-100">
-        <div className="content-width container-padding">
-          <div className="text-center mb-16">
-            <Badge className="mb-4 px-4 py-2 bg-blue-100 text-blue-700 rounded-full">Nossos Serviços</Badge>
-            <h2 className="text-4xl md:text-5xl font-bold text-slate-900 mb-6">
-              Como Podemos <span className="text-blue-500">Ajudar</span>
+        <div className="relative z-10 content-width container-padding">
+          <div className="text-center mb-24 animate-fade-in">
+            <Badge className="mb-8 px-8 py-4 bg-gradient-to-r from-orange-100 to-orange-200 text-orange-700 border border-orange-200 text-base font-medium rounded-full shadow-soft">
+              <TrendingUp className="mr-3 h-5 w-5" />
+              Como Transformamos Vidas
+            </Badge>
+            <h2 className="font-bold text-slate-900 mb-10 leading-tight">
+              Nosso <span className="text-gradient-orange">Impacto</span> na Comunidade
             </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Oferecemos uma gama completa de serviços para transformar vidas e construir um futuro melhor
+            <p className="text-2xl text-gray-600 max-w-5xl mx-auto leading-relaxed">
+              Oferecemos um ecossistema completo de recursos para apoiar o desenvolvimento pessoal e profissional dos
+              jovens, criando oportunidades reais de transformação.
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
             {[
               {
                 icon: BookOpen,
-                title: "Palestras Motivacionais",
-                description: "Palestras inspiradoras que transformam perspectivas e motivam mudanças positivas",
-                color: "from-blue-500 to-blue-600",
-                href: "/palestras",
+                title: "Cursos Técnicos",
+                description:
+                  "Informações sobre cursos técnicos gratuitos e oportunidades de capacitação profissional com certificação reconhecida.",
+                gradient: "from-orange-500 to-orange-600",
+                bgGradient: "from-orange-50 to-orange-100",
+                iconBg: "bg-orange-500",
               },
               {
                 icon: Users,
-                title: "Cursos Técnicos",
-                description: "Capacitação profissional com cursos técnicos voltados para o mercado de trabalho",
-                color: "from-green-500 to-green-600",
-                href: "/cursos",
+                title: "Palestras Motivacionais",
+                description:
+                  "Eventos inspiradores e educativos para motivar e orientar nossos jovens em suas jornadas pessoais.",
+                gradient: "from-emerald-500 to-emerald-600",
+                bgGradient: "from-emerald-50 to-emerald-100",
+                iconBg: "bg-emerald-500",
               },
               {
                 icon: Heart,
-                title: "Apoio aos Jovens",
-                description: "Programas especiais de mentoria e desenvolvimento para jovens em situação de risco",
-                color: "from-purple-500 to-purple-600",
-                href: "/jovens",
+                title: "Apoio Emocional",
+                description:
+                  "Suporte psicológico especializado e acompanhamento emocional para jovens e suas famílias.",
+                gradient: "from-red-500 to-red-600",
+                bgGradient: "from-red-50 to-red-100",
+                iconBg: "bg-red-500",
               },
               {
-                icon: Users,
-                title: "Suporte às Famílias",
-                description: "Orientação e apoio para famílias em situação de vulnerabilidade social",
-                color: "from-orange-500 to-orange-600",
-                href: "/familias",
+                icon: Lightbulb,
+                title: "Empreendedorismo",
+                description:
+                  "Mentoria em empreendedorismo e desenvolvimento de ideias de negócio com foco em inovação social.",
+                gradient: "from-blue-500 to-blue-600",
+                bgGradient: "from-blue-50 to-blue-100",
+                iconBg: "bg-blue-500",
               },
-              {
-                icon: Calendar,
-                title: "Eventos Comunitários",
-                description: "Organização de eventos que fortalecem os laços comunitários e promovem integração",
-                color: "from-pink-500 to-pink-600",
-                href: "/contato",
-              },
-              {
-                icon: Star,
-                title: "Consultoria Social",
-                description: "Consultoria especializada para organizações que desejam impacto social positivo",
-                color: "from-indigo-500 to-indigo-600",
-                href: "/contato",
-              },
-            ].map((service, index) => (
+            ].map((feature, index) => (
               <Card
-                key={index}
-                className="group hover:shadow-glow transition-all duration-500 border-0 bg-white/80 backdrop-blur-sm"
+                key={feature.title}
+                className="group hover-lift border-0 bg-white/95 backdrop-blur-xl hover:bg-white transition-all duration-500 animate-fade-in overflow-hidden rounded-3xl shadow-soft hover:shadow-xl"
+                style={{ animationDelay: `${index * 150}ms` }}
               >
-                <CardHeader className="pb-4">
-                  <div
-                    className={`w-16 h-16 rounded-2xl bg-gradient-to-r ${service.color} p-4 mb-4 group-hover:scale-110 transition-transform duration-300`}
-                  >
-                    <service.icon className="w-8 h-8 text-white" />
-                  </div>
-                  <CardTitle className="text-xl text-slate-900 group-hover:text-orange-600 transition-colors duration-300">
-                    {service.title}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <CardDescription className="text-gray-600 text-base leading-relaxed mb-6">
-                    {service.description}
-                  </CardDescription>
-                  <Link href={service.href}>
-                    <Button
-                      variant="ghost"
-                      className="group/btn p-0 h-auto text-orange-600 hover:text-orange-700 font-semibold"
+                <CardHeader className="text-center pb-8 pt-10">
+                  <div className="relative mx-auto mb-8">
+                    <div
+                      className={`w-24 h-24 rounded-4xl ${feature.iconBg} p-6 shadow-medium group-hover:shadow-xl group-hover:scale-110 transition-all duration-500 relative overflow-hidden`}
                     >
-                      Saiba mais
-                      <ArrowRight className="ml-2 h-4 w-4 group-hover/btn:translate-x-1 transition-transform duration-300" />
-                    </Button>
-                  </Link>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Testimonials Section */}
-      <section className="py-24 bg-white">
-        <div className="content-width container-padding">
-          <div className="text-center mb-16">
-            <Badge className="mb-4 px-4 py-2 bg-green-100 text-green-700 rounded-full">Depoimentos</Badge>
-            <h2 className="text-4xl md:text-5xl font-bold text-slate-900 mb-6">
-              Histórias de <span className="text-green-500">Transformação</span>
-            </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Conheça algumas das vidas que foram transformadas através do nosso trabalho
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {[
-              {
-                name: "Maria Silva",
-                role: "Ex-participante do programa",
-                content:
-                  "O Projeto Metanoia mudou completamente minha vida. Hoje tenho uma profissão e posso sustentar minha família com dignidade.",
-                rating: 5,
-              },
-              {
-                name: "João Santos",
-                role: "Jovem beneficiário",
-                content:
-                  "Graças ao apoio recebido, consegui sair das ruas e hoje estou cursando técnico em informática. Meu futuro é promissor!",
-                rating: 5,
-              },
-              {
-                name: "Ana Costa",
-                role: "Mãe de família",
-                content:
-                  "O suporte que recebi me ajudou a superar momentos difíceis. Hoje sou uma pessoa mais forte e confiante.",
-                rating: 5,
-              },
-            ].map((testimonial, index) => (
-              <Card
-                key={index}
-                className="group hover:shadow-glow transition-all duration-500 border-0 bg-gradient-to-br from-white to-gray-50"
-              >
-                <CardContent className="p-8">
-                  <div className="flex items-center mb-4">
-                    {[...Array(testimonial.rating)].map((_, i) => (
-                      <Star key={i} className="w-5 h-5 text-yellow-400 fill-current" />
-                    ))}
-                  </div>
-                  <Quote className="w-8 h-8 text-orange-400 mb-4" />
-                  <p className="text-gray-700 text-lg leading-relaxed mb-6 italic">"{testimonial.content}"</p>
-                  <div className="flex items-center">
-                    <div className="w-12 h-12 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full flex items-center justify-center text-white font-bold text-lg mr-4">
-                      {testimonial.name.charAt(0)}
+                      <feature.icon className="h-12 w-12 text-white relative z-10" />
+                      <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                     </div>
-                    <div>
-                      <h4 className="font-semibold text-slate-900">{testimonial.name}</h4>
-                      <p className="text-gray-500 text-sm">{testimonial.role}</p>
-                    </div>
+                    <div
+                      className={`absolute -inset-3 bg-gradient-to-br ${feature.bgGradient} rounded-4xl opacity-0 group-hover:opacity-30 transition-opacity duration-500 -z-10 blur-sm`}
+                    ></div>
                   </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Events Section */}
-      <section className="py-24 bg-gradient-to-br from-orange-50 to-orange-100">
-        <div className="content-width container-padding">
-          <div className="text-center mb-16">
-            <Badge className="mb-4 px-4 py-2 bg-orange-100 text-orange-700 rounded-full">Próximos Eventos</Badge>
-            <h2 className="text-4xl md:text-5xl font-bold text-slate-900 mb-6">
-              Participe dos Nossos <span className="text-orange-500">Eventos</span>
-            </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Fique por dentro das próximas atividades e faça parte da nossa comunidade
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {[
-              {
-                title: "Palestra: Superando Desafios",
-                date: "15 de Março, 2024",
-                time: "19:00",
-                location: "Centro Comunitário",
-                description: "Uma palestra inspiradora sobre como superar obstáculos e alcançar seus objetivos.",
-              },
-              {
-                title: "Workshop: Desenvolvimento Pessoal",
-                date: "22 de Março, 2024",
-                time: "14:00",
-                location: "Sede do Projeto",
-                description: "Workshop prático focado no desenvolvimento de habilidades pessoais e profissionais.",
-              },
-              {
-                title: "Evento Comunitário: Dia da Família",
-                date: "30 de Março, 2024",
-                time: "10:00",
-                location: "Praça Central",
-                description: "Um dia especial dedicado às famílias com atividades recreativas e educativas.",
-              },
-            ].map((event, index) => (
-              <Card key={index} className="group hover:shadow-glow transition-all duration-500 border-0 bg-white">
-                <CardHeader className="pb-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <Badge className="bg-orange-100 text-orange-700">{event.date}</Badge>
-                    <span className="text-sm text-gray-500">{event.time}</span>
-                  </div>
-                  <CardTitle className="text-xl text-slate-900 group-hover:text-orange-600 transition-colors duration-300">
-                    {event.title}
+                  <CardTitle className="text-2xl font-bold text-slate-900 group-hover:text-slate-700 transition-colors duration-300 mb-4">
+                    {feature.title}
                   </CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <p className="text-gray-600 mb-4">{event.description}</p>
-                  <div className="flex items-center text-sm text-gray-500 mb-6">
-                    <Calendar className="w-4 h-4 mr-2" />
-                    {event.location}
-                  </div>
-                  <Button className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white">
-                    Participar
-                  </Button>
+                <CardContent className="px-8 pb-10">
+                  <CardDescription className="text-gray-600 leading-relaxed text-center group-hover:text-gray-700 transition-colors duration-300 text-base">
+                    {feature.description}
+                  </CardDescription>
                 </CardContent>
               </Card>
             ))}
@@ -376,55 +238,62 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-24 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-orange-500/10 via-transparent to-blue-500/10"></div>
+      {/* Enhanced CTA Section */}
+      <section className="section-padding bg-gradient-to-br from-orange-500 via-orange-600 to-orange-700 relative overflow-hidden">
         <div className="absolute inset-0 bg-dot-pattern opacity-20"></div>
+        <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-yellow-400/10 via-transparent to-red-500/10"></div>
+        <div className="absolute inset-0 bg-gradient-to-t from-orange-700/50 via-transparent to-transparent"></div>
 
         <div className="relative z-10 content-width container-padding text-center">
-          <div className="max-w-4xl mx-auto space-y-8">
-            <Badge className="px-6 py-2 bg-orange-500/10 text-orange-300 border-orange-400/20 rounded-full">
-              Faça Parte da Mudança
+          <div className="animate-fade-in">
+            <Badge className="mb-12 px-8 py-4 bg-white/20 text-white border border-white/30 backdrop-blur-xl rounded-full">
+              <Heart className="mr-3 h-5 w-5" />
+              Junte-se a Nós
             </Badge>
-
-            <h2 className="text-4xl md:text-6xl font-bold leading-tight">
-              Juntos Podemos{" "}
-              <span className="bg-gradient-to-r from-orange-400 to-orange-600 bg-clip-text text-transparent">
-                Transformar Vidas
+            <h2 className="font-bold mb-12 text-white leading-tight">
+              Faça Parte Desta{" "}
+              <span className="relative inline-block">
+                <span className="bg-gradient-to-r from-yellow-200 to-yellow-300 bg-clip-text text-transparent">
+                  Transformação
+                </span>
+                <div className="absolute -inset-2 bg-gradient-to-r from-yellow-300/30 to-yellow-400/30 rounded-2xl blur-xl opacity-50 animate-pulse-slow"></div>
               </span>
             </h2>
-
-            <p className="text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed">
-              Sua participação e apoio são fundamentais para continuarmos transformando vidas. Entre em contato conosco
-              e descubra como você pode fazer a diferença.
+            <p className="text-2xl md:text-3xl mb-16 text-orange-100 max-w-5xl mx-auto leading-relaxed">
+              Seja um parceiro, voluntário ou apoiador. Juntos podemos fazer a diferença na vida de muitos jovens e
+              construir um futuro mais justo e próspero para todos.
             </p>
-
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-8">
+            <div className="flex flex-col sm:flex-row gap-8 justify-center items-center">
               <Link href="/contato">
                 <Button
                   size="lg"
-                  className="group px-8 py-4 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white rounded-xl font-semibold shadow-glow-orange transition-all duration-500"
+                  className="group px-16 py-8 text-xl font-semibold bg-white text-orange-600 hover:bg-gray-50 shadow-xl hover:shadow-2xl transition-all duration-500 rounded-3xl relative overflow-hidden"
                 >
-                  <span className="flex items-center">
+                  <span className="relative z-10 flex items-center">
                     Entre em Contato
-                    <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform duration-300" />
+                    <ArrowRight className="ml-4 h-6 w-6 group-hover:translate-x-2 transition-transform duration-300" />
                   </span>
+                  <div className="absolute inset-0 bg-gradient-to-r from-gray-50 to-white opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                 </Button>
               </Link>
-
               <Link href="/sobre">
                 <Button
-                  variant="outline"
                   size="lg"
-                  className="px-8 py-4 border-2 border-white/20 text-white hover:bg-white/10 rounded-xl font-semibold backdrop-blur-xl transition-all duration-300 bg-transparent"
+                  variant="outline"
+                  className="group px-16 py-8 text-xl font-semibold text-white border-2 border-white bg-white/10 hover:border-white/90 hover:bg-white/20 backdrop-blur-xl rounded-3xl transition-all duration-500 shadow-medium hover:shadow-xl"
                 >
-                  Saiba Mais Sobre Nós
+                  <span className="flex items-center">
+                    Saiba Mais
+                    <Sparkles className="ml-4 h-6 w-6 group-hover:scale-110 transition-transform duration-300" />
+                  </span>
                 </Button>
               </Link>
             </div>
           </div>
         </div>
       </section>
+
+      <Footer />
     </div>
   )
 }

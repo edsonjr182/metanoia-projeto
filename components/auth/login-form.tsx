@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useRouter } from "next/navigation"
+
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -48,14 +48,11 @@ export default function LoginForm() {
 
   const [resetEmail, setResetEmail] = useState("")
 
-  const router = useRouter()
-
   const handleGoogleLogin = async () => {
     try {
       setLoading(true)
       setError("")
       await signInWithGoogle()
-      router.push("/admin")
     } catch (error: any) {
       setError(getErrorMessage(error.code))
     } finally {
@@ -65,12 +62,10 @@ export default function LoginForm() {
 
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault()
-    setLoading(true)
-    setError("")
-
     try {
+      setLoading(true)
+      setError("")
       await signInWithEmail(loginData.email, loginData.password)
-      router.push("/admin")
     } catch (error: any) {
       setError(getErrorMessage(error.code))
     } finally {
@@ -299,7 +294,7 @@ export default function LoginForm() {
                 <Button
                   onClick={handleGoogleLogin}
                   variant="outline"
-                  className="w-full h-14 border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50 rounded-2xl font-semibold transition-all duration-300 group relative overflow-hidden bg-transparent"
+                  className="w-full h-14 border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50 rounded-2xl font-semibold transition-all duration-300 group relative overflow-hidden"
                   disabled={loading}
                 >
                   <span className="relative z-10 flex items-center justify-center">
