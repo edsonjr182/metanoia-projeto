@@ -16,6 +16,7 @@ import {
   TrendingUp,
   Settings,
   UserCog,
+  Globe,
 } from "lucide-react"
 import ProtectedRoute from "@/components/protected-route"
 import PalestrasAdmin from "@/components/admin/palestras-admin"
@@ -25,6 +26,7 @@ import ContatosAdmin from "@/components/admin/contatos-admin"
 import UserProfile from "@/components/auth/user-profile"
 import ConfiguracoesAdmin from "@/components/admin/configuracoes-admin"
 import UsuariosAdmin from "@/components/admin/usuarios-admin"
+import LandingPagesAdmin from "@/components/admin/landingpages-admin"
 
 export default function AdminPage() {
   const { user, logout } = useAuth()
@@ -58,7 +60,7 @@ export default function AdminPage() {
                   onClick={logout}
                   variant="outline"
                   size="sm"
-                  className="border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 rounded-xl transition-all duration-200"
+                  className="border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 rounded-xl transition-all duration-200 bg-transparent"
                 >
                   <LogOut className="h-4 w-4 mr-2" />
                   Sair
@@ -87,14 +89,15 @@ export default function AdminPage() {
           </div>
 
           {/* Quick Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-6 gap-6 mb-12 animate-fade-in">
+          <div className="grid grid-cols-1 md:grid-cols-7 gap-6 mb-12 animate-fade-in">
             {[
               { title: "Palestras", value: "12", change: "+2", icon: Calendar, color: "orange" },
               { title: "Cursos", value: "8", change: "+1", icon: BookOpen, color: "metanoia" },
               { title: "Conteúdos", value: "24", change: "+5", icon: Users, color: "emerald" },
               { title: "Contatos", value: "15", change: "+3", icon: MessageSquare, color: "red" },
+              { title: "Landing Pages", value: "3", change: "+1", icon: Globe, color: "purple" },
               { title: "Usuários", value: "45", change: "+8", icon: UserCog, color: "blue" },
-              { title: "Configurações", value: "1", change: "Ativo", icon: Settings, color: "purple" },
+              { title: "Configurações", value: "1", change: "Ativo", icon: Settings, color: "gray" },
             ].map((stat, index) => (
               <Card
                 key={stat.title}
@@ -121,7 +124,7 @@ export default function AdminPage() {
 
           {/* Main Content */}
           <Tabs defaultValue="palestras" className="space-y-8">
-            <TabsList className="grid w-full grid-cols-7 bg-white/80 backdrop-blur-sm p-2 rounded-2xl shadow-soft border-0 h-auto">
+            <TabsList className="grid w-full grid-cols-8 bg-white/80 backdrop-blur-sm p-2 rounded-2xl shadow-soft border-0 h-auto">
               <TabsTrigger
                 value="palestras"
                 className="flex flex-col items-center py-4 px-6 rounded-xl font-medium data-[state=active]:bg-gradient-to-br data-[state=active]:from-orange-500 data-[state=active]:to-orange-600 data-[state=active]:text-white data-[state=active]:shadow-medium transition-all duration-300"
@@ -149,6 +152,13 @@ export default function AdminPage() {
               >
                 <MessageSquare className="h-5 w-5 mb-2" />
                 <span className="text-sm">Contatos</span>
+              </TabsTrigger>
+              <TabsTrigger
+                value="landingpages"
+                className="flex flex-col items-center py-4 px-6 rounded-xl font-medium data-[state=active]:bg-gradient-to-br data-[state=active]:from-purple-500 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-medium transition-all duration-300"
+              >
+                <Globe className="h-5 w-5 mb-2" />
+                <span className="text-sm">Landing Pages</span>
               </TabsTrigger>
               <TabsTrigger
                 value="usuarios"
@@ -187,6 +197,10 @@ export default function AdminPage() {
 
             <TabsContent value="contatos" className="animate-fade-in">
               <ContatosAdmin />
+            </TabsContent>
+
+            <TabsContent value="landingpages" className="animate-fade-in">
+              <LandingPagesAdmin />
             </TabsContent>
 
             <TabsContent value="usuarios" className="animate-fade-in">
