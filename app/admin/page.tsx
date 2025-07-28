@@ -4,6 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { useAuth } from "@/contexts/auth-context"
+import { useDashboardStats } from "@/hooks/use-dashboard-stats"
 import {
   LogOut,
   Users,
@@ -17,6 +18,8 @@ import {
   Settings,
   UserCog,
   Globe,
+  UserPlus,
+  Loader2,
 } from "lucide-react"
 import ProtectedRoute from "@/components/protected-route"
 import PalestrasAdmin from "@/components/admin/palestras-admin"
@@ -30,6 +33,7 @@ import LandingPagesAdmin from "@/components/admin/landingpages-admin"
 
 export default function AdminPage() {
   const { user, logout } = useAuth()
+  const stats = useDashboardStats()
 
   return (
     <ProtectedRoute>
@@ -89,15 +93,36 @@ export default function AdminPage() {
           </div>
 
           {/* Quick Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-7 gap-6 mb-12 animate-fade-in">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12 animate-fade-in">
             {[
-              { title: "Palestras", value: "12", change: "+2", icon: Calendar, color: "orange" },
-              { title: "Cursos", value: "8", change: "+1", icon: BookOpen, color: "metanoia" },
-              { title: "Conteúdos", value: "24", change: "+5", icon: Users, color: "emerald" },
-              { title: "Contatos", value: "15", change: "+3", icon: MessageSquare, color: "red" },
-              { title: "Landing Pages", value: "3", change: "+1", icon: Globe, color: "purple" },
-              { title: "Usuários", value: "45", change: "+8", icon: UserCog, color: "blue" },
-              { title: "Configurações", value: "1", change: "Ativo", icon: Settings, color: "gray" },
+              {
+                title: "Palestras",
+                value: stats.loading ? "..." : stats.palestras.toString(),
+                change: stats.loading ? "..." : `${stats.palestras} total`,
+                icon: Calendar,
+                color: "orange",
+              },
+              {
+                title: "Cursos",
+                value: stats.loading ? "..." : stats.cursos.toString(),
+                change: stats.loading ? "..." : `${stats.cursos} total`,
+                icon: BookOpen,
+                color: "metanoia",
+              },
+              {
+                title: "Landing Pages",
+                value: stats.loading ? "..." : stats.landingPages.toString(),
+                change: stats.loading ? "..." : `${stats.landingPages} ativas`,
+                icon: Globe,
+                color: "purple",
+              },
+              {
+                title: "Leads Capturados",
+                value: stats.loading ? "..." : stats.leadsLandingPages.toString(),
+                change: stats.loading ? "..." : `${stats.leadsLandingPages} cadastros`,
+                icon: UserPlus,
+                color: "emerald",
+              },
             ].map((stat, index) => (
               <Card
                 key={stat.title}
@@ -107,10 +132,70 @@ export default function AdminPage() {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-gray-600">{stat.title}</p>
-                      <p className="text-3xl font-bold text-gray-900">{stat.value}</p>
+                      <div className="flex items-center">
+                        {stats.loading ? (
+                          <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+                        ) : (
+                          <p className="text-3xl font-bold text-gray-900">{stat.value}</p>
+                        )}
+                      </div>
                       <div className="flex items-center mt-1">
                         <TrendingUp className="h-3 w-3 text-emerald-500 mr-1" />
-                        <span className="text-xs text-emerald-600 font-medium">{stat.change} este mês</span>
+                        <span className="text-xs text-emerald-600 font-medium">{stat.change}</span>
+                      </div>
+                    </div>
+                    <div className={`p-3 rounded-2xl bg-gradient-to-br from-${stat.color}-100 to-${stat.color}-200`}>
+                      <stat.icon className={`h-6 w-6 text-${stat.color}-600`} />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          {/* Secondary Stats */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12 animate-fade-in">
+            {[
+              {
+                title: "Conteúdos",
+                value: stats.loading ? "..." : stats.conteudos.toString(),
+                change: stats.loading ? "..." : `${stats.conteudos} publicados`,
+                icon: Users,
+                color: "blue",
+              },
+              {
+                title: "Contatos",
+                value: stats.loading ? "..." : stats.contatos.toString(),
+                change: stats.loading ? "..." : `${stats.contatos} mensagens`,
+                icon: MessageSquare,
+                color: "red",
+              },
+              {
+                title: "Usuários",
+                value: stats.loading ? "..." : stats.usuarios.toString(),
+                change: stats.loading ? "..." : `${stats.usuarios} cadastrados`,
+                icon: UserCog,
+                color: "indigo",
+              },
+            ].map((stat, index) => (
+              <Card
+                key={stat.title}
+                className="border-0 shadow-soft hover:shadow-medium transition-all duration-300 bg-white/80 backdrop-blur-sm"
+              >
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-gray-600">{stat.title}</p>
+                      <div className="flex items-center">
+                        {stats.loading ? (
+                          <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+                        ) : (
+                          <p className="text-3xl font-bold text-gray-900">{stat.value}</p>
+                        )}
+                      </div>
+                      <div className="flex items-center mt-1">
+                        <TrendingUp className="h-3 w-3 text-emerald-500 mr-1" />
+                        <span className="text-xs text-emerald-600 font-medium">{stat.change}</span>
                       </div>
                     </div>
                     <div className={`p-3 rounded-2xl bg-gradient-to-br from-${stat.color}-100 to-${stat.color}-200`}>
