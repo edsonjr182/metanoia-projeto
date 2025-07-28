@@ -9,7 +9,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
-import { Heart, ArrowDown, CheckCircle, Sparkles, Users, Target } from "lucide-react"
+import { Heart, ArrowDown, CheckCircle, Sparkles, Users, Target, Video } from "lucide-react"
 import { collection, query, where, getDocs, addDoc } from "firebase/firestore"
 import { db } from "@/lib/firebase"
 
@@ -22,6 +22,12 @@ interface LandingPage {
   descricao: string
   bannerTipo: "imagem" | "video"
   bannerUrl: string
+  videoApresentacao?: {
+    ativo: boolean
+    url: string
+    titulo: string
+    descricao: string
+  }
   sobreTitulo: string
   sobreDescricao: string
   botaoTexto: string
@@ -196,6 +202,91 @@ export default function LandingPageView() {
           </div>
         </div>
       </section>
+
+      {/* Nova Seção do Vídeo de Apresentação */}
+      {page.videoApresentacao?.ativo && page.videoApresentacao.url && (
+        <section className="py-20 px-4 sm:px-6 lg:px-8 relative">
+          {/* Background Pattern */}
+          <div className="absolute inset-0 opacity-5">
+            <div className="absolute inset-0 bg-dot-pattern"></div>
+          </div>
+
+          <div className="relative z-10 max-w-6xl mx-auto">
+            <div className="text-center mb-12 animate-fade-in">
+              {page.videoApresentacao.titulo && (
+                <>
+                  <Badge
+                    className="mb-8 px-6 py-3 border rounded-full text-sm font-medium"
+                    style={{
+                      backgroundColor: `${page.cores.primaria}20`,
+                      color: page.cores.primaria,
+                      borderColor: `${page.cores.primaria}40`,
+                    }}
+                  >
+                    <Video className="mr-2 h-4 w-4" />
+                    Apresentação
+                  </Badge>
+
+                  <h2 className="text-4xl md:text-5xl font-bold mb-6 leading-tight" style={{ color: page.cores.texto }}>
+                    {page.videoApresentacao.titulo}
+                  </h2>
+                </>
+              )}
+
+              {page.videoApresentacao.descricao && (
+                <p className="text-xl opacity-80 max-w-3xl mx-auto mb-12">{page.videoApresentacao.descricao}</p>
+              )}
+            </div>
+
+            <div className="animate-fade-in">
+              <div className="relative max-w-4xl mx-auto">
+                <div
+                  className="absolute -inset-4 rounded-3xl blur-2xl opacity-20"
+                  style={{ backgroundColor: page.cores.primaria }}
+                ></div>
+
+                <Card className="relative bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl overflow-hidden shadow-2xl">
+                  <CardContent className="p-2">
+                    <div className="aspect-video rounded-2xl overflow-hidden bg-black">
+                      <video
+                        src={page.videoApresentacao.url}
+                        className="w-full h-full object-cover"
+                        controls
+                        poster="/placeholder.svg?height=400&width=800&text=Carregando+vídeo..."
+                        preload="metadata"
+                        onError={(e) => {
+                          console.error("Erro ao carregar vídeo:", e)
+                        }}
+                      >
+                        <source src={page.videoApresentacao.url} type="video/mp4" />
+                        Seu navegador não suporta o elemento de vídeo.
+                      </video>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              <div className="text-center mt-12">
+                <Button
+                  onClick={scrollToForm}
+                  size="lg"
+                  className="group px-10 py-4 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-500 rounded-2xl"
+                  style={{
+                    backgroundColor: page.cores.botao,
+                    borderColor: page.cores.botao,
+                    color: "#ffffff",
+                  }}
+                >
+                  <span className="flex items-center">
+                    {page.botaoTexto}
+                    <ArrowDown className="ml-3 h-5 w-5 group-hover:translate-y-1 transition-transform duration-300" />
+                  </span>
+                </Button>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* About Section */}
       <section className="py-20 px-4 sm:px-6 lg:px-8 relative overflow-hidden">

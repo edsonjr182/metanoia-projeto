@@ -14,6 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Plus, Edit, Trash2, Eye, Copy, ImageIcon, Video, Users, Download } from "lucide-react"
 import { collection, addDoc, getDocs, deleteDoc, doc, updateDoc, query, orderBy } from "firebase/firestore"
 import { db } from "@/lib/firebase"
+import { Checkbox } from "@/components/ui/checkbox"
 
 interface LandingPage {
   id: string
@@ -24,6 +25,12 @@ interface LandingPage {
   descricao: string
   bannerTipo: "imagem" | "video"
   bannerUrl: string
+  videoApresentacao: {
+    ativo: boolean
+    url: string
+    titulo: string
+    descricao: string
+  }
   sobreTitulo: string
   sobreDescricao: string
   botaoTexto: string
@@ -57,6 +64,7 @@ export default function LandingPagesAdmin() {
   const [activeTab, setActiveTab] = useState("paginas")
   const [selectedPageLeads, setSelectedPageLeads] = useState<string>("")
 
+  // No formData, adicionar os campos do vídeo de apresentação
   const [formData, setFormData] = useState({
     nome: "",
     slug: "",
@@ -65,6 +73,13 @@ export default function LandingPagesAdmin() {
     descricao: "",
     bannerTipo: "imagem" as "imagem" | "video",
     bannerUrl: "",
+    // Novos campos para vídeo de apresentação
+    videoApresentacao: {
+      ativo: false,
+      url: "",
+      titulo: "",
+      descricao: "",
+    },
     sobreTitulo: "",
     sobreDescricao: "",
     botaoTexto: "Quero Participar",
@@ -148,6 +163,7 @@ export default function LandingPagesAdmin() {
     }
   }
 
+  // No handleEdit, adicionar os novos campos
   const handleEdit = (page: LandingPage) => {
     setEditingPage(page)
     setFormData({
@@ -158,6 +174,12 @@ export default function LandingPagesAdmin() {
       descricao: page.descricao,
       bannerTipo: page.bannerTipo,
       bannerUrl: page.bannerUrl,
+      videoApresentacao: page.videoApresentacao || {
+        ativo: false,
+        url: "",
+        titulo: "",
+        descricao: "",
+      },
       sobreTitulo: page.sobreTitulo,
       sobreDescricao: page.sobreDescricao,
       botaoTexto: page.botaoTexto,
@@ -167,6 +189,7 @@ export default function LandingPagesAdmin() {
     setShowForm(true)
   }
 
+  // No resetForm, resetar os novos campos
   const resetForm = () => {
     setFormData({
       nome: "",
@@ -176,6 +199,12 @@ export default function LandingPagesAdmin() {
       descricao: "",
       bannerTipo: "imagem",
       bannerUrl: "",
+      videoApresentacao: {
+        ativo: false,
+        url: "",
+        titulo: "",
+        descricao: "",
+      },
       sobreTitulo: "",
       sobreDescricao: "",
       botaoTexto: "Quero Participar",
@@ -258,6 +287,17 @@ export default function LandingPagesAdmin() {
     return leads.filter((lead) => lead.landingPageId === pageId)
   }
 
+  // Adicionar função para lidar com mudanças no vídeo de apresentação
+  const handleVideoApresentacaoChange = (field: string, value: string | boolean) => {
+    setFormData((prev) => ({
+      ...prev,
+      videoApresentacao: {
+        ...prev.videoApresentacao,
+        [field]: value,
+      },
+    }))
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -293,6 +333,7 @@ export default function LandingPagesAdmin() {
                       <TabsTrigger value="design">Design</TabsTrigger>
                     </TabsList>
 
+                    {/* Na TabsContent value="conteudo", adicionar seção do vídeo de apresentação após a descrição */}
                     <TabsContent value="conteudo" className="space-y-4">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
@@ -346,6 +387,76 @@ export default function LandingPagesAdmin() {
                           onChange={handleChange}
                           rows={3}
                         />
+                      </div>
+
+                      {/* Nova seção do vídeo de apresentação */}
+                      <div className="border rounded-lg p-4 bg-gray-50">
+                        <div className="flex items-center space-x-2 mb-4">
+                          <Checkbox
+                            id="videoApresentacaoAtivo"
+                            checked={formData.videoApresentacao.ativo}
+                            onCheckedChange={(checked) => handleVideoApresentacaoChange("ativo", checked as boolean)}
+                          />
+                          <Label htmlFor="videoApresentacaoAtivo" className="font-semibold">
+                            Adicionar Vídeo de Apresentação
+                          </Label>
+                        </div>
+
+                        {formData.videoApresentacao.ativo && (
+                          <div className="space-y-4">
+                            <div>
+                              <Label htmlFor="videoApresentacaoUrl">URL do Vídeo</Label>
+                              <Input
+                                id="videoApresentacaoUrl"
+                                type="url"
+                                value={formData.videoApresentacao.url}
+                                onChange={(e) => handleVideoApresentacaoChange("url", e.target.value)}
+                                placeholder="https://exemplo.com/video.mp4"
+                                required={formData.videoApresentacao.ativo}
+                              />
+                              <p className="text-xs text-gray-500 mt-1">
+                                Formatos suportados: MP4, WebM. O vídeo aparecerá entre o banner e a seção sobre.
+                              </p>
+                            </div>
+
+                            <div>
+                              <Label htmlFor="videoApresentacaoTitulo">Título do Vídeo (opcional)</Label>
+                              <Input
+                                id="videoApresentacaoTitulo"
+                                value={formData.videoApresentacao.titulo}
+                                onChange={(e) => handleVideoApresentacaoChange("titulo", e.target.value)}
+                                placeholder="Ex: Conheça nossa história"
+                              />
+                            </div>
+
+                            <div>
+                              <Label htmlFor="videoApresentacaoDescricao">Descrição do Vídeo (opcional)</Label>
+                              <Textarea
+                                id="videoApresentacaoDescricao"
+                                value={formData.videoApresentacao.descricao}
+                                onChange={(e) => handleVideoApresentacaoChange("descricao", e.target.value)}
+                                rows={2}
+                                placeholder="Breve descrição sobre o vídeo..."
+                              />
+                            </div>
+
+                            {formData.videoApresentacao.url && (
+                              <div className="mt-4">
+                                <Label>Preview do Vídeo</Label>
+                                <div className="mt-2 border rounded-lg overflow-hidden">
+                                  <video
+                                    src={formData.videoApresentacao.url}
+                                    className="w-full h-48 object-cover"
+                                    controls
+                                    onError={(e) => {
+                                      e.currentTarget.style.display = "none"
+                                    }}
+                                  />
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </div>
 
                       <div>
