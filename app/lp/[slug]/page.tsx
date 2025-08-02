@@ -9,7 +9,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
-import { Heart, ArrowDown, CheckCircle, Sparkles, Users, Target, Video } from "lucide-react"
+import { Heart, ArrowDown, CheckCircle, Sparkles, Users, Target, Video, MessageCircle, Send, Play } from "lucide-react"
 import { collection, query, where, getDocs, addDoc } from "firebase/firestore"
 import { db } from "@/lib/firebase"
 
@@ -27,6 +27,24 @@ interface LandingPage {
     url: string
     titulo: string
     descricao: string
+    poster?: string
+    autoplay: boolean
+  }
+  gruposLinks?: {
+    ativo: boolean
+    titulo: string
+    descricao: string
+    posicao: "antes-sobre" | "depois-sobre" | "antes-formulario"
+    whatsapp?: {
+      ativo: boolean
+      titulo: string
+      link: string
+    }
+    telegram?: {
+      ativo: boolean
+      titulo: string
+      link: string
+    }
   }
   sobreTitulo: string
   sobreDescricao: string
@@ -48,6 +66,7 @@ export default function LandingPageView() {
   const [loading, setLoading] = useState(true)
   const [formLoading, setFormLoading] = useState(false)
   const [success, setSuccess] = useState(false)
+  const [videoLoading, setVideoLoading] = useState(true)
   const [formData, setFormData] = useState({
     nome: "",
     whatsapp: "",
@@ -115,6 +134,118 @@ export default function LandingPageView() {
 
   const scrollToForm = () => {
     document.getElementById("formulario")?.scrollIntoView({ behavior: "smooth" })
+  }
+
+  const renderGruposSection = () => {
+    if (!page?.gruposLinks?.ativo) return null
+
+    const hasActiveGroups = page.gruposLinks.whatsapp?.ativo || page.gruposLinks.telegram?.ativo
+    if (!hasActiveGroups) return null
+
+    return (
+      <section className="py-20 px-4 sm:px-6 lg:px-8 relative">
+        {/* Background Pattern */}
+        <div className="absolute inset-0 opacity-5">
+          <div className="absolute inset-0 bg-dot-pattern"></div>
+        </div>
+
+        <div className="relative z-10 max-w-6xl mx-auto">
+          <div className="text-center mb-12 animate-fade-in">
+            <Badge
+              className="mb-8 px-6 py-3 border rounded-full text-sm font-medium"
+              style={{
+                backgroundColor: `${page.cores.primaria}20`,
+                color: page.cores.primaria,
+                borderColor: `${page.cores.primaria}40`,
+              }}
+            >
+              <Users className="mr-2 h-4 w-4" />
+              Comunidade
+            </Badge>
+
+            <h2 className="text-4xl md:text-5xl font-bold mb-6 leading-tight" style={{ color: page.cores.texto }}>
+              {page.gruposLinks.titulo}
+            </h2>
+
+            <p className="text-xl opacity-80 max-w-3xl mx-auto mb-12">{page.gruposLinks.descricao}</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto animate-fade-in">
+            {page.gruposLinks.whatsapp?.ativo && (
+              <Card className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl overflow-hidden shadow-2xl hover:shadow-3xl transition-all duration-500 group">
+                <CardContent className="p-8 text-center">
+                  <div
+                    className="w-16 h-16 rounded-2xl p-4 mx-auto mb-6 group-hover:scale-110 transition-transform duration-300"
+                    style={{ backgroundColor: "#25D366" }}
+                  >
+                    <MessageCircle className="h-8 w-8 text-white" />
+                  </div>
+                  <h3 className="text-2xl font-bold mb-4" style={{ color: page.cores.texto }}>
+                    {page.gruposLinks.whatsapp.titulo}
+                  </h3>
+                  <p className="opacity-80 mb-6">Participe das conversas diárias e receba conteúdos exclusivos</p>
+                  <Button
+                    asChild
+                    size="lg"
+                    className="w-full py-4 text-lg font-semibold bg-green-500 hover:bg-green-600 text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-2xl group-hover:scale-105"
+                  >
+                    <a href={page.gruposLinks.whatsapp.link} target="_blank" rel="noopener noreferrer">
+                      <MessageCircle className="mr-3 h-5 w-5" />
+                      Entrar no Grupo
+                    </a>
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
+
+            {page.gruposLinks.telegram?.ativo && (
+              <Card className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl overflow-hidden shadow-2xl hover:shadow-3xl transition-all duration-500 group">
+                <CardContent className="p-8 text-center">
+                  <div
+                    className="w-16 h-16 rounded-2xl p-4 mx-auto mb-6 group-hover:scale-110 transition-transform duration-300"
+                    style={{ backgroundColor: "#0088cc" }}
+                  >
+                    <Send className="h-8 w-8 text-white" />
+                  </div>
+                  <h3 className="text-2xl font-bold mb-4" style={{ color: page.cores.texto }}>
+                    {page.gruposLinks.telegram.titulo}
+                  </h3>
+                  <p className="opacity-80 mb-6">Receba atualizações em tempo real e conteúdos especiais</p>
+                  <Button
+                    asChild
+                    size="lg"
+                    className="w-full py-4 text-lg font-semibold bg-blue-500 hover:bg-blue-600 text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-2xl group-hover:scale-105"
+                  >
+                    <a href={page.gruposLinks.telegram.link} target="_blank" rel="noopener noreferrer">
+                      <Send className="mr-3 h-5 w-5" />
+                      Seguir Canal
+                    </a>
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+
+          <div className="text-center mt-12">
+            <Button
+              onClick={scrollToForm}
+              size="lg"
+              className="group px-10 py-4 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-500 rounded-2xl"
+              style={{
+                backgroundColor: page.cores.botao,
+                borderColor: page.cores.botao,
+                color: "#ffffff",
+              }}
+            >
+              <span className="flex items-center">
+                {page.botaoTexto}
+                <ArrowDown className="ml-3 h-5 w-5 group-hover:translate-y-1 transition-transform duration-300" />
+              </span>
+            </Button>
+          </div>
+        </div>
+      </section>
+    )
   }
 
   if (loading) {
@@ -203,7 +334,10 @@ export default function LandingPageView() {
         </div>
       </section>
 
-      {/* Nova Seção do Vídeo de Apresentação */}
+      {/* Seção de Grupos - Antes da Seção Sobre */}
+      {page?.gruposLinks?.posicao === "antes-sobre" && renderGruposSection()}
+
+      {/* Seção do Vídeo de Apresentação Melhorada */}
       {page.videoApresentacao?.ativo && page.videoApresentacao.url && (
         <section className="py-20 px-4 sm:px-6 lg:px-8 relative">
           {/* Background Pattern */}
@@ -247,20 +381,45 @@ export default function LandingPageView() {
 
                 <Card className="relative bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl overflow-hidden shadow-2xl">
                   <CardContent className="p-2">
-                    <div className="aspect-video rounded-2xl overflow-hidden bg-black">
+                    <div className="aspect-video rounded-2xl overflow-hidden bg-black relative">
                       <video
                         src={page.videoApresentacao.url}
+                        poster={page.videoApresentacao.poster}
                         className="w-full h-full object-cover"
                         controls
-                        poster="/placeholder.svg?height=400&width=800&text=Carregando+vídeo..."
+                        autoPlay={page.videoApresentacao.autoplay !== false}
+                        muted={page.videoApresentacao.autoplay !== false}
+                        playsInline
                         preload="metadata"
+                        onLoadStart={() => setVideoLoading(true)}
+                        onCanPlay={() => setVideoLoading(false)}
                         onError={(e) => {
                           console.error("Erro ao carregar vídeo:", e)
+                          setVideoLoading(false)
                         }}
                       >
                         <source src={page.videoApresentacao.url} type="video/mp4" />
                         Seu navegador não suporta o elemento de vídeo.
                       </video>
+
+                      {/* Loading Overlay */}
+                      {videoLoading && (
+                        <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                          <div className="text-center text-white">
+                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
+                            <p className="text-sm">Carregando vídeo...</p>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Play Button Overlay (quando não é autoplay) */}
+                      {!page.videoApresentacao.autoplay && !videoLoading && (
+                        <div className="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+                          <div className="bg-black/50 rounded-full p-6 backdrop-blur-sm">
+                            <Play className="h-12 w-12 text-white ml-1" />
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
@@ -389,6 +548,12 @@ export default function LandingPageView() {
           </div>
         </div>
       </section>
+
+      {/* Seção de Grupos - Depois da Seção Sobre */}
+      {page?.gruposLinks?.posicao === "depois-sobre" && renderGruposSection()}
+
+      {/* Seção de Grupos - Antes do Formulário */}
+      {page?.gruposLinks?.posicao === "antes-formulario" && renderGruposSection()}
 
       {/* Form Section */}
       <section id="formulario" className="py-20 px-4 sm:px-6 lg:px-8 relative">

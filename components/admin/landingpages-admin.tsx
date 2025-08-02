@@ -11,7 +11,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Plus, Edit, Trash2, Eye, Copy, ImageIcon, Video, Users, Download } from "lucide-react"
+import { Plus, Edit, Trash2, Eye, Copy, ImageIcon, Video, Users, Download, MessageCircle, Send } from "lucide-react"
 import { collection, addDoc, getDocs, deleteDoc, doc, updateDoc, query, orderBy } from "firebase/firestore"
 import { db } from "@/lib/firebase"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -30,6 +30,24 @@ interface LandingPage {
     url: string
     titulo: string
     descricao: string
+    poster?: string
+    autoplay: boolean
+  }
+  gruposLinks?: {
+    ativo: boolean
+    titulo: string
+    descricao: string
+    posicao: "antes-sobre" | "depois-sobre" | "antes-formulario"
+    whatsapp?: {
+      ativo: boolean
+      titulo: string
+      link: string
+    }
+    telegram?: {
+      ativo: boolean
+      titulo: string
+      link: string
+    }
   }
   sobreTitulo: string
   sobreDescricao: string
@@ -64,7 +82,6 @@ export default function LandingPagesAdmin() {
   const [activeTab, setActiveTab] = useState("paginas")
   const [selectedPageLeads, setSelectedPageLeads] = useState<string>("")
 
-  // No formData, adicionar os campos do vídeo de apresentação
   const [formData, setFormData] = useState({
     nome: "",
     slug: "",
@@ -73,12 +90,29 @@ export default function LandingPagesAdmin() {
     descricao: "",
     bannerTipo: "imagem" as "imagem" | "video",
     bannerUrl: "",
-    // Novos campos para vídeo de apresentação
     videoApresentacao: {
       ativo: false,
       url: "",
       titulo: "",
       descricao: "",
+      poster: "",
+      autoplay: true,
+    },
+    gruposLinks: {
+      ativo: false,
+      titulo: "Junte-se aos Nossos Grupos",
+      descricao: "Participe da nossa comunidade e receba conteúdos exclusivos",
+      posicao: "depois-sobre" as "antes-sobre" | "depois-sobre" | "antes-formulario",
+      whatsapp: {
+        ativo: false,
+        titulo: "Grupo WhatsApp",
+        link: "",
+      },
+      telegram: {
+        ativo: false,
+        titulo: "Canal Telegram",
+        link: "",
+      },
     },
     sobreTitulo: "",
     sobreDescricao: "",
@@ -163,7 +197,6 @@ export default function LandingPagesAdmin() {
     }
   }
 
-  // No handleEdit, adicionar os novos campos
   const handleEdit = (page: LandingPage) => {
     setEditingPage(page)
     setFormData({
@@ -179,6 +212,24 @@ export default function LandingPagesAdmin() {
         url: "",
         titulo: "",
         descricao: "",
+        poster: "",
+        autoplay: true,
+      },
+      gruposLinks: page.gruposLinks || {
+        ativo: false,
+        titulo: "Junte-se aos Nossos Grupos",
+        descricao: "Participe da nossa comunidade e receba conteúdos exclusivos",
+        posicao: "depois-sobre",
+        whatsapp: {
+          ativo: false,
+          titulo: "Grupo WhatsApp",
+          link: "",
+        },
+        telegram: {
+          ativo: false,
+          titulo: "Canal Telegram",
+          link: "",
+        },
       },
       sobreTitulo: page.sobreTitulo,
       sobreDescricao: page.sobreDescricao,
@@ -189,7 +240,6 @@ export default function LandingPagesAdmin() {
     setShowForm(true)
   }
 
-  // No resetForm, resetar os novos campos
   const resetForm = () => {
     setFormData({
       nome: "",
@@ -204,6 +254,24 @@ export default function LandingPagesAdmin() {
         url: "",
         titulo: "",
         descricao: "",
+        poster: "",
+        autoplay: true,
+      },
+      gruposLinks: {
+        ativo: false,
+        titulo: "Junte-se aos Nossos Grupos",
+        descricao: "Participe da nossa comunidade e receba conteúdos exclusivos",
+        posicao: "depois-sobre",
+        whatsapp: {
+          ativo: false,
+          titulo: "Grupo WhatsApp",
+          link: "",
+        },
+        telegram: {
+          ativo: false,
+          titulo: "Canal Telegram",
+          link: "",
+        },
       },
       sobreTitulo: "",
       sobreDescricao: "",
@@ -287,13 +355,35 @@ export default function LandingPagesAdmin() {
     return leads.filter((lead) => lead.landingPageId === pageId)
   }
 
-  // Adicionar função para lidar com mudanças no vídeo de apresentação
   const handleVideoApresentacaoChange = (field: string, value: string | boolean) => {
     setFormData((prev) => ({
       ...prev,
       videoApresentacao: {
         ...prev.videoApresentacao,
         [field]: value,
+      },
+    }))
+  }
+
+  const handleGruposLinksChange = (field: string, value: string | boolean) => {
+    setFormData((prev) => ({
+      ...prev,
+      gruposLinks: {
+        ...prev.gruposLinks,
+        [field]: value,
+      },
+    }))
+  }
+
+  const handleGrupoChange = (grupo: "whatsapp" | "telegram", field: string, value: string | boolean) => {
+    setFormData((prev) => ({
+      ...prev,
+      gruposLinks: {
+        ...prev.gruposLinks,
+        [grupo]: {
+          ...prev.gruposLinks[grupo],
+          [field]: value,
+        },
       },
     }))
   }
@@ -327,13 +417,13 @@ export default function LandingPagesAdmin() {
               <CardContent>
                 <form onSubmit={handleSubmit} className="space-y-6">
                   <Tabs defaultValue="conteudo" className="w-full">
-                    <TabsList className="grid w-full grid-cols-3">
+                    <TabsList className="grid w-full grid-cols-4">
                       <TabsTrigger value="conteudo">Conteúdo</TabsTrigger>
                       <TabsTrigger value="banner">Banner</TabsTrigger>
                       <TabsTrigger value="design">Design</TabsTrigger>
+                      <TabsTrigger value="grupos">Grupos</TabsTrigger>
                     </TabsList>
 
-                    {/* Na TabsContent value="conteudo", adicionar seção do vídeo de apresentação após a descrição */}
                     <TabsContent value="conteudo" className="space-y-4">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
@@ -389,7 +479,7 @@ export default function LandingPagesAdmin() {
                         />
                       </div>
 
-                      {/* Nova seção do vídeo de apresentação */}
+                      {/* Seção do vídeo de apresentação melhorada */}
                       <div className="border rounded-lg p-4 bg-gray-50">
                         <div className="flex items-center space-x-2 mb-4">
                           <Checkbox
@@ -420,6 +510,34 @@ export default function LandingPagesAdmin() {
                             </div>
 
                             <div>
+                              <Label htmlFor="videoApresentacaoPoster">Imagem de Capa (opcional)</Label>
+                              <Input
+                                id="videoApresentacaoPoster"
+                                type="url"
+                                value={formData.videoApresentacao.poster}
+                                onChange={(e) => handleVideoApresentacaoChange("poster", e.target.value)}
+                                placeholder="https://exemplo.com/capa.jpg"
+                              />
+                              <p className="text-xs text-gray-500 mt-1">
+                                Imagem que aparece antes do vídeo iniciar. Se não informado, será usado o primeiro frame
+                                do vídeo.
+                              </p>
+                            </div>
+
+                            <div className="flex items-center space-x-2">
+                              <Checkbox
+                                id="videoApresentacaoAutoplay"
+                                checked={formData.videoApresentacao.autoplay}
+                                onCheckedChange={(checked) =>
+                                  handleVideoApresentacaoChange("autoplay", checked as boolean)
+                                }
+                              />
+                              <Label htmlFor="videoApresentacaoAutoplay">
+                                Reproduzir automaticamente (recomendado)
+                              </Label>
+                            </div>
+
+                            <div>
                               <Label htmlFor="videoApresentacaoTitulo">Título do Vídeo (opcional)</Label>
                               <Input
                                 id="videoApresentacaoTitulo"
@@ -446,12 +564,24 @@ export default function LandingPagesAdmin() {
                                 <div className="mt-2 border rounded-lg overflow-hidden">
                                   <video
                                     src={formData.videoApresentacao.url}
+                                    poster={formData.videoApresentacao.poster}
                                     className="w-full h-48 object-cover"
                                     controls
+                                    muted
                                     onError={(e) => {
                                       e.currentTarget.style.display = "none"
                                     }}
                                   />
+                                  {formData.videoApresentacao.poster && (
+                                    <p className="text-xs text-gray-500 mt-2 px-2 pb-2">
+                                      ✅ Capa personalizada configurada
+                                    </p>
+                                  )}
+                                  <div className="px-2 pb-2">
+                                    <p className="text-xs text-gray-600">
+                                      🎬 Autoplay: {formData.videoApresentacao.autoplay ? "Ativado" : "Desativado"}
+                                    </p>
+                                  </div>
                                 </div>
                               </div>
                             )}
@@ -680,6 +810,196 @@ export default function LandingPagesAdmin() {
                         >
                           {formData.botaoTexto}
                         </Button>
+                      </div>
+                    </TabsContent>
+
+                    <TabsContent value="grupos" className="space-y-4">
+                      <div className="border rounded-lg p-4 bg-gray-50">
+                        <div className="flex items-center space-x-2 mb-4">
+                          <Checkbox
+                            id="gruposLinksAtivo"
+                            checked={formData.gruposLinks.ativo}
+                            onCheckedChange={(checked) => handleGruposLinksChange("ativo", checked as boolean)}
+                          />
+                          <Label htmlFor="gruposLinksAtivo" className="font-semibold">
+                            Ativar Seção de Grupos
+                          </Label>
+                        </div>
+
+                        {formData.gruposLinks.ativo && (
+                          <div className="space-y-4">
+                            <div>
+                              <Label htmlFor="gruposTitulo">Título da Seção</Label>
+                              <Input
+                                id="gruposTitulo"
+                                value={formData.gruposLinks.titulo}
+                                onChange={(e) => handleGruposLinksChange("titulo", e.target.value)}
+                                placeholder="Ex: Junte-se aos Nossos Grupos"
+                                required={formData.gruposLinks.ativo}
+                              />
+                            </div>
+
+                            <div>
+                              <Label htmlFor="gruposDescricao">Descrição da Seção</Label>
+                              <Textarea
+                                id="gruposDescricao"
+                                value={formData.gruposLinks.descricao}
+                                onChange={(e) => handleGruposLinksChange("descricao", e.target.value)}
+                                rows={2}
+                                placeholder="Breve descrição sobre os grupos..."
+                                required={formData.gruposLinks.ativo}
+                              />
+                            </div>
+
+                            <div>
+                              <Label htmlFor="gruposPosicao">Posição na Página</Label>
+                              <Select
+                                value={formData.gruposLinks.posicao}
+                                onValueChange={(value) => handleGruposLinksChange("posicao", value)}
+                              >
+                                <SelectTrigger>
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="antes-sobre">Antes da Seção Sobre</SelectItem>
+                                  <SelectItem value="depois-sobre">Depois da Seção Sobre</SelectItem>
+                                  <SelectItem value="antes-formulario">Antes do Formulário</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              {/* WhatsApp */}
+                              <Card>
+                                <CardHeader className="pb-3">
+                                  <div className="flex items-center space-x-2">
+                                    <MessageCircle className="h-5 w-5 text-green-600" />
+                                    <CardTitle className="text-lg">WhatsApp</CardTitle>
+                                  </div>
+                                </CardHeader>
+                                <CardContent className="space-y-3">
+                                  <div className="flex items-center space-x-2">
+                                    <Checkbox
+                                      id="whatsappAtivo"
+                                      checked={formData.gruposLinks.whatsapp?.ativo || false}
+                                      onCheckedChange={(checked) =>
+                                        handleGrupoChange("whatsapp", "ativo", checked as boolean)
+                                      }
+                                    />
+                                    <Label htmlFor="whatsappAtivo">Ativar WhatsApp</Label>
+                                  </div>
+
+                                  {formData.gruposLinks.whatsapp?.ativo && (
+                                    <>
+                                      <div>
+                                        <Label htmlFor="whatsappTitulo">Título do Botão</Label>
+                                        <Input
+                                          id="whatsappTitulo"
+                                          value={formData.gruposLinks.whatsapp?.titulo || ""}
+                                          onChange={(e) => handleGrupoChange("whatsapp", "titulo", e.target.value)}
+                                          placeholder="Ex: Grupo WhatsApp"
+                                          required
+                                        />
+                                      </div>
+
+                                      <div>
+                                        <Label htmlFor="whatsappLink">Link do Grupo</Label>
+                                        <Input
+                                          id="whatsappLink"
+                                          type="url"
+                                          value={formData.gruposLinks.whatsapp?.link || ""}
+                                          onChange={(e) => handleGrupoChange("whatsapp", "link", e.target.value)}
+                                          placeholder="https://chat.whatsapp.com/..."
+                                          required
+                                        />
+                                      </div>
+                                    </>
+                                  )}
+                                </CardContent>
+                              </Card>
+
+                              {/* Telegram */}
+                              <Card>
+                                <CardHeader className="pb-3">
+                                  <div className="flex items-center space-x-2">
+                                    <Send className="h-5 w-5 text-blue-500" />
+                                    <CardTitle className="text-lg">Telegram</CardTitle>
+                                  </div>
+                                </CardHeader>
+                                <CardContent className="space-y-3">
+                                  <div className="flex items-center space-x-2">
+                                    <Checkbox
+                                      id="telegramAtivo"
+                                      checked={formData.gruposLinks.telegram?.ativo || false}
+                                      onCheckedChange={(checked) =>
+                                        handleGrupoChange("telegram", "ativo", checked as boolean)
+                                      }
+                                    />
+                                    <Label htmlFor="telegramAtivo">Ativar Telegram</Label>
+                                  </div>
+
+                                  {formData.gruposLinks.telegram?.ativo && (
+                                    <>
+                                      <div>
+                                        <Label htmlFor="telegramTitulo">Título do Botão</Label>
+                                        <Input
+                                          id="telegramTitulo"
+                                          value={formData.gruposLinks.telegram?.titulo || ""}
+                                          onChange={(e) => handleGrupoChange("telegram", "titulo", e.target.value)}
+                                          placeholder="Ex: Canal Telegram"
+                                          required
+                                        />
+                                      </div>
+
+                                      <div>
+                                        <Label htmlFor="telegramLink">Link do Canal/Grupo</Label>
+                                        <Input
+                                          id="telegramLink"
+                                          type="url"
+                                          value={formData.gruposLinks.telegram?.link || ""}
+                                          onChange={(e) => handleGrupoChange("telegram", "link", e.target.value)}
+                                          placeholder="https://t.me/..."
+                                          required
+                                        />
+                                      </div>
+                                    </>
+                                  )}
+                                </CardContent>
+                              </Card>
+                            </div>
+
+                            {/* Preview */}
+                            {(formData.gruposLinks.whatsapp?.ativo || formData.gruposLinks.telegram?.ativo) && (
+                              <div className="mt-6 p-4 border rounded-lg bg-white">
+                                <h4 className="font-semibold mb-2">Preview da Seção</h4>
+                                <div className="text-center mb-4">
+                                  <h3 className="text-xl font-bold mb-2">{formData.gruposLinks.titulo}</h3>
+                                  <p className="text-gray-600">{formData.gruposLinks.descricao}</p>
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                  {formData.gruposLinks.whatsapp?.ativo && (
+                                    <div className="p-4 border rounded-lg text-center">
+                                      <MessageCircle className="h-8 w-8 text-green-600 mx-auto mb-2" />
+                                      <h4 className="font-semibold">{formData.gruposLinks.whatsapp.titulo}</h4>
+                                      <Button className="mt-2 bg-green-500 hover:bg-green-600 text-white" size="sm">
+                                        Entrar no Grupo
+                                      </Button>
+                                    </div>
+                                  )}
+                                  {formData.gruposLinks.telegram?.ativo && (
+                                    <div className="p-4 border rounded-lg text-center">
+                                      <Send className="h-8 w-8 text-blue-500 mx-auto mb-2" />
+                                      <h4 className="font-semibold">{formData.gruposLinks.telegram.titulo}</h4>
+                                      <Button className="mt-2 bg-blue-500 hover:bg-blue-600 text-white" size="sm">
+                                        Seguir Canal
+                                      </Button>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </div>
                     </TabsContent>
                   </Tabs>
