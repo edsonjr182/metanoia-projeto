@@ -9,7 +9,7 @@ const inter = Inter({ subsets: ["latin"] })
 export const metadata: Metadata = {
   title: "Projeto Metanoia - Transformando Vidas",
   description: "Ajudando jovens e adolescentes de periferia a voltarem a sonhar com o futuro",
-    generator: 'v0.dev'
+    generator: 'v0.app'
 }
 
 export default function RootLayout({

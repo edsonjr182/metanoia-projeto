@@ -8,8 +8,17 @@ import Link from "next/link"
 import { useConfiguracoes } from "@/hooks/use-configuracoes"
 
 export default function PrivacidadePage() {
-  const { configuracoes } = useConfiguracoes()
+  const { configuracoes, loading } = useConfiguracoes()
   const [dataAtualizacao] = useState(new Date().toLocaleDateString("pt-BR"))
+
+  // Adicionar loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-green-600"></div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100">
@@ -40,7 +49,9 @@ export default function PrivacidadePage() {
           {/* Conteúdo */}
           <Card className="shadow-lg">
             <CardHeader className="bg-green-500 text-white">
-              <CardTitle className="text-2xl">Política de Privacidade - {configuracoes.juridico.razaoSocial}</CardTitle>
+              <CardTitle className="text-2xl">
+                Política de Privacidade - {configuracoes?.juridico?.razaoSocial || "Projeto Metanoia"}
+              </CardTitle>
             </CardHeader>
             <CardContent className="p-8 space-y-8">
               {/* Introdução */}
@@ -50,10 +61,11 @@ export default function PrivacidadePage() {
                   1. Introdução
                 </h2>
                 <p className="text-gray-700 leading-relaxed">
-                  O <strong>{configuracoes.juridico.razaoSocial}</strong> está comprometido com a proteção da
-                  privacidade e dos dados pessoais de nossos usuários. Esta Política de Privacidade descreve como
-                  coletamos, usamos, armazenamos e protegemos suas informações pessoais, em total conformidade com a{" "}
-                  <strong>Lei Geral de Proteção de Dados (LGPD - Lei 13.709/2018)</strong>.
+                  O{" "}
+                  <strong>{configuracoes?.juridico?.razaoSocial || "Projeto Metanoia: mudança de mentalidade"}</strong>{" "}
+                  está comprometido com a proteção da privacidade e dos dados pessoais de nossos usuários. Esta Política
+                  de Privacidade descreve como coletamos, usamos, armazenamos e protegemos suas informações pessoais, em
+                  total conformidade com a <strong>Lei Geral de Proteção de Dados (LGPD - Lei 13.709/2018)</strong>.
                 </p>
               </section>
 
@@ -256,16 +268,17 @@ export default function PrivacidadePage() {
                   <div className="space-y-2">
                     <p className="flex items-center">
                       <Mail className="mr-2 h-4 w-4 text-green-500" />
-                      <strong>Email para questões de privacidade:</strong> {configuracoes.juridico.emailJuridico}
+                      <strong>Email para questões de privacidade:</strong>{" "}
+                      {configuracoes?.juridico?.emailJuridico || "juridico@projetometanoia.com.br"}
                     </p>
                     <p className="flex items-center">
                       <Phone className="mr-2 h-4 w-4 text-green-500" />
-                      <strong>Telefone:</strong> {configuracoes.juridico.telefoneJuridico}
+                      <strong>Telefone:</strong> {configuracoes?.juridico?.telefoneJuridico || "(61) 98319-4827"}
                     </p>
                     <p>
-                      <strong>Endereço:</strong> {configuracoes.juridico.enderecoCompleto}
+                      <strong>Endereço:</strong> {configuracoes?.juridico?.enderecoCompleto || "Brasília, DF"}
                     </p>
-                    {configuracoes.juridico.responsavelLegal && (
+                    {configuracoes?.juridico?.responsavelLegal && (
                       <p>
                         <strong>Responsável pelo tratamento:</strong> {configuracoes.juridico.responsavelLegal}
                       </p>

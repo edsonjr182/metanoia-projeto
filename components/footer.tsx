@@ -1,13 +1,11 @@
 "use client"
 
-import { useState } from "react"
 import Link from "next/link"
-import { Facebook, Instagram, Twitter, Linkedin, Mail, Phone, MapPin, Heart, Scale, Shield } from "lucide-react"
+import { Facebook, Instagram, Twitter, Linkedin, Mail, Phone, MapPin, Heart } from "lucide-react"
 import { useConfiguracoes } from "@/hooks/use-configuracoes"
 
 export default function Footer() {
   const { configuracoes } = useConfiguracoes()
-  const [currentYear] = useState(new Date().getFullYear())
 
   return (
     <footer className="bg-gray-900 text-white">
@@ -17,49 +15,49 @@ export default function Footer() {
           <div className="space-y-4">
             <h3 className="text-xl font-bold text-orange-400">Projeto Metanoia</h3>
             <p className="text-gray-300 text-sm leading-relaxed">
-              Transformando vidas através da educação, desenvolvimento pessoal e mudança de mentalidade. Construindo um
-              futuro melhor para jovens, famílias e comunidades.
+              Transformando vidas através da educação e desenvolvimento pessoal. Nosso compromisso é promover mudança de
+              mentalidade e crescimento integral.
             </p>
-            <div className="flex space-x-3">
-              {configuracoes.redesSociais.facebook !== "#" && (
-                <a
-                  href={configuracoes.redesSociais.facebook}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-gray-400 hover:text-blue-500 transition-colors"
-                >
-                  <Facebook className="h-5 w-5" />
-                </a>
-              )}
-              {configuracoes.redesSociais.instagram !== "#" && (
-                <a
+            <div className="flex space-x-4">
+              {configuracoes?.redesSociais?.instagram && configuracoes.redesSociais.instagram !== "#" && (
+                <Link
                   href={configuracoes.redesSociais.instagram}
+                  className="text-gray-400 hover:text-pink-400 transition-colors"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-gray-400 hover:text-pink-500 transition-colors"
                 >
                   <Instagram className="h-5 w-5" />
-                </a>
+                </Link>
               )}
-              {configuracoes.redesSociais.twitter !== "#" && (
-                <a
-                  href={configuracoes.redesSociais.twitter}
+              {configuracoes?.redesSociais?.facebook && configuracoes.redesSociais.facebook !== "#" && (
+                <Link
+                  href={configuracoes.redesSociais.facebook}
+                  className="text-gray-400 hover:text-blue-400 transition-colors"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-gray-400 hover:text-blue-400 transition-colors"
+                >
+                  <Facebook className="h-5 w-5" />
+                </Link>
+              )}
+              {configuracoes?.redesSociais?.twitter && configuracoes.redesSociais.twitter !== "#" && (
+                <Link
+                  href={configuracoes.redesSociais.twitter}
+                  className="text-gray-400 hover:text-blue-300 transition-colors"
+                  target="_blank"
+                  rel="noopener noreferrer"
                 >
                   <Twitter className="h-5 w-5" />
-                </a>
+                </Link>
               )}
-              {configuracoes.redesSociais.linkedin !== "#" && (
-                <a
+              {configuracoes?.redesSociais?.linkedin && configuracoes.redesSociais.linkedin !== "#" && (
+                <Link
                   href={configuracoes.redesSociais.linkedin}
+                  className="text-gray-400 hover:text-blue-500 transition-colors"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-gray-400 hover:text-blue-600 transition-colors"
                 >
                   <Linkedin className="h-5 w-5" />
-                </a>
+                </Link>
               )}
             </div>
           </div>
@@ -67,114 +65,145 @@ export default function Footer() {
           {/* Links Rápidos */}
           <div className="space-y-4">
             <h3 className="text-lg font-semibold text-orange-400">Links Rápidos</h3>
-            <ul className="space-y-2 text-sm">
+            <ul className="space-y-2">
               <li>
-                <Link href="/sobre" className="text-gray-300 hover:text-orange-400 transition-colors">
+                <Link href="/sobre" className="text-gray-300 hover:text-orange-400 transition-colors text-sm">
                   Sobre Nós
                 </Link>
               </li>
               <li>
-                <Link href="/palestras" className="text-gray-300 hover:text-orange-400 transition-colors">
+                <Link href="/palestras" className="text-gray-300 hover:text-orange-400 transition-colors text-sm">
                   Palestras
                 </Link>
               </li>
               <li>
-                <Link href="/cursos" className="text-gray-300 hover:text-orange-400 transition-colors">
+                <Link href="/cursos" className="text-gray-300 hover:text-orange-400 transition-colors text-sm">
                   Cursos
                 </Link>
               </li>
               <li>
-                <Link href="/jovens" className="text-gray-300 hover:text-orange-400 transition-colors">
+                <Link href="/jovens" className="text-gray-300 hover:text-orange-400 transition-colors text-sm">
                   Jovens
                 </Link>
               </li>
               <li>
-                <Link href="/familias" className="text-gray-300 hover:text-orange-400 transition-colors">
+                <Link href="/familias" className="text-gray-300 hover:text-orange-400 transition-colors text-sm">
                   Famílias
                 </Link>
               </li>
               <li>
-                <Link href="/contato" className="text-gray-300 hover:text-orange-400 transition-colors">
+                <Link href="/contato" className="text-gray-300 hover:text-orange-400 transition-colors text-sm">
                   Contato
                 </Link>
               </li>
             </ul>
           </div>
 
+          {/* Informações Legais */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold text-orange-400">Informações Legais</h3>
+            <ul className="space-y-2">
+              <li>
+                <Link href="/termos" className="text-gray-300 hover:text-blue-400 transition-colors text-sm">
+                  Termos de Uso
+                </Link>
+              </li>
+              <li>
+                <Link href="/privacidade" className="text-gray-300 hover:text-green-400 transition-colors text-sm">
+                  Política de Privacidade
+                </Link>
+              </li>
+              <li>
+                <span className="text-gray-400 text-sm">LGPD Compliant</span>
+              </li>
+              <li>
+                <span className="text-gray-400 text-sm">Foro: Brasília/DF</span>
+              </li>
+            </ul>
+            {configuracoes?.juridico?.cnpj && (
+              <div className="text-gray-400 text-xs">
+                <p>CNPJ: {configuracoes.juridico.cnpj}</p>
+              </div>
+            )}
+          </div>
+
           {/* Contato */}
           <div className="space-y-4">
             <h3 className="text-lg font-semibold text-orange-400">Contato</h3>
-            <div className="space-y-3 text-sm">
-              <div className="flex items-center space-x-2 text-gray-300">
-                <Mail className="h-4 w-4 text-orange-400" />
-                <span>{configuracoes.contato.email}</span>
-              </div>
-              <div className="flex items-center space-x-2 text-gray-300">
-                <Phone className="h-4 w-4 text-orange-400" />
-                <span>{configuracoes.contato.telefone}</span>
-              </div>
-              <div className="flex items-center space-x-2 text-gray-300">
-                <MapPin className="h-4 w-4 text-orange-400" />
-                <span>{configuracoes.contato.localizacao}</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Impacto */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-orange-400">Nosso Impacto</h3>
-            <div className="space-y-3 text-sm">
-              <div className="text-gray-300">
-                <div className="text-2xl font-bold text-orange-400">{configuracoes.estatisticas.jovensImpactados}</div>
-                <div>Jovens Impactados</div>
-              </div>
-              <div className="text-gray-300">
-                <div className="text-2xl font-bold text-orange-400">
-                  {configuracoes.estatisticas.palestrasRealizadas}
+            <div className="space-y-3">
+              {configuracoes?.contato?.email && (
+                <div className="flex items-center space-x-2">
+                  <Mail className="h-4 w-4 text-orange-400 flex-shrink-0" />
+                  <a
+                    href={`mailto:${configuracoes.contato.email}`}
+                    className="text-gray-300 hover:text-orange-400 transition-colors text-sm"
+                  >
+                    {configuracoes.contato.email}
+                  </a>
                 </div>
-                <div>Palestras Realizadas</div>
-              </div>
-              <div className="text-gray-300">
-                <div className="text-2xl font-bold text-orange-400">{configuracoes.estatisticas.parceriasAtivas}</div>
-                <div>Parcerias Ativas</div>
-              </div>
+              )}
+              {configuracoes?.contato?.telefone && (
+                <div className="flex items-center space-x-2">
+                  <Phone className="h-4 w-4 text-orange-400 flex-shrink-0" />
+                  <a
+                    href={`tel:${configuracoes.contato.telefone.replace(/\D/g, "")}`}
+                    className="text-gray-300 hover:text-orange-400 transition-colors text-sm"
+                  >
+                    {configuracoes.contato.telefone}
+                  </a>
+                </div>
+              )}
+              {configuracoes?.contato?.localizacao && (
+                <div className="flex items-center space-x-2">
+                  <MapPin className="h-4 w-4 text-orange-400 flex-shrink-0" />
+                  <span className="text-gray-300 text-sm">{configuracoes.contato.localizacao}</span>
+                </div>
+              )}
             </div>
           </div>
         </div>
 
-        {/* Linha divisória */}
-        <div className="border-t border-gray-700 mt-8 pt-8">
-          <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
-            {/* Copyright */}
-            <div className="flex items-center space-x-2 text-sm text-gray-400">
-              <span>© {currentYear} Projeto Metanoia. Feito com</span>
-              <Heart className="h-4 w-4 text-red-500" />
-              <span>para transformar vidas.</span>
-            </div>
-
-            {/* Links Jurídicos */}
-            <div className="flex items-center space-x-6 text-sm">
-              <Link
-                href="/termos"
-                className="text-gray-400 hover:text-blue-400 transition-colors flex items-center space-x-1"
-              >
-                <Scale className="h-4 w-4" />
-                <span>Termos de Uso</span>
-              </Link>
-              <Link
-                href="/privacidade"
-                className="text-gray-400 hover:text-green-400 transition-colors flex items-center space-x-1"
-              >
-                <Shield className="h-4 w-4" />
-                <span>Política de Privacidade</span>
-              </Link>
+        {/* Estatísticas */}
+        {(configuracoes?.estatisticas?.jovensImpactados ||
+          configuracoes?.estatisticas?.palestrasRealizadas ||
+          configuracoes?.estatisticas?.parceriasAtivas) && (
+          <div className="border-t border-gray-800 mt-8 pt-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
+              {configuracoes.estatisticas.jovensImpactados && (
+                <div>
+                  <div className="text-2xl font-bold text-orange-400">
+                    {configuracoes.estatisticas.jovensImpactados}
+                  </div>
+                  <div className="text-gray-400 text-sm">Jovens Impactados</div>
+                </div>
+              )}
+              {configuracoes.estatisticas.palestrasRealizadas && (
+                <div>
+                  <div className="text-2xl font-bold text-orange-400">
+                    {configuracoes.estatisticas.palestrasRealizadas}
+                  </div>
+                  <div className="text-gray-400 text-sm">Palestras Realizadas</div>
+                </div>
+              )}
+              {configuracoes.estatisticas.parceriasAtivas && (
+                <div>
+                  <div className="text-2xl font-bold text-orange-400">{configuracoes.estatisticas.parceriasAtivas}</div>
+                  <div className="text-gray-400 text-sm">Parcerias Ativas</div>
+                </div>
+              )}
             </div>
           </div>
+        )}
 
-          {/* Informação LGPD */}
-          <div className="mt-4 text-center">
-            <p className="text-xs text-gray-500">
-              Este site está em conformidade com a Lei Geral de Proteção de Dados (LGPD - Lei 13.709/2018)
+        {/* Copyright */}
+        <div className="border-t border-gray-800 mt-8 pt-6 text-center">
+          <div className="flex flex-col md:flex-row justify-between items-center space-y-2 md:space-y-0">
+            <p className="text-gray-400 text-sm">
+              © {new Date().getFullYear()} {configuracoes?.juridico?.razaoSocial || "Projeto Metanoia"}. Todos os
+              direitos reservados.
+            </p>
+            <p className="text-gray-500 text-xs flex items-center">
+              Feito com <Heart className="h-3 w-3 mx-1 text-red-500" /> para transformar vidas
             </p>
           </div>
         </div>

@@ -4,64 +4,73 @@ import { useState, useEffect } from "react"
 import { doc, getDoc, setDoc } from "firebase/firestore"
 import { db } from "@/lib/firebase"
 
-interface ConfiguracoesJuridico {
-  razaoSocial: string
-  cnpj: string
-  enderecoCompleto: string
-  responsavelLegal: string
-  emailJuridico: string
-  telefoneJuridico: string
-}
-
-interface ConfiguracoesSite {
+interface Configuracoes {
   contato: {
     email: string
     telefone: string
-    localizacao: string
+    endereco: string
   }
-  redesSociais: {
-    instagram: string
+  juridico: {
+    razaoSocial: string
+    cnpj: string
+    enderecoCompleto: string
+    responsavelLegal: string
+    emailJuridico: string
+    telefoneJuridico: string
+  }
+  redes: {
     facebook: string
-    twitter: string
-    linkedin: string
+    instagram: string
+    youtube: string
+    whatsapp: string
+    telegram: string
+    discord: string
+    linkCustom1: {
+      nome: string
+      url: string
+    }
+    linkCustom2: {
+      nome: string
+      url: string
+    }
   }
-  estatisticas: {
-    jovensImpactados: string
-    palestrasRealizadas: string
-    parceriasAtivas: string
-  }
-  juridico: ConfiguracoesJuridico
+}
+
+const defaultConfiguracoes: Configuracoes = {
+  contato: {
+    email: "contato@projetometanoia.com.br",
+    telefone: "(61) 98319-4827",
+    endereco: "Brasília, DF",
+  },
+  juridico: {
+    razaoSocial: "Projeto Metanoia: mudança de mentalidade",
+    cnpj: "",
+    enderecoCompleto: "Brasília, DF",
+    responsavelLegal: "",
+    emailJuridico: "juridico@projetometanoia.com.br",
+    telefoneJuridico: "(61) 98319-4827",
+  },
+  redes: {
+    facebook: "",
+    instagram: "",
+    youtube: "",
+    whatsapp: "",
+    telegram: "",
+    discord: "",
+    linkCustom1: {
+      nome: "",
+      url: "",
+    },
+    linkCustom2: {
+      nome: "",
+      url: "",
+    },
+  },
 }
 
 export function useConfiguracoes() {
-  const [configuracoes, setConfiguracoes] = useState<ConfiguracoesSite>({
-    contato: {
-      email: "contato@projetometanoia.com.br",
-      telefone: "(61) 98319-4827",
-      localizacao: "Brasília, DF",
-    },
-    redesSociais: {
-      instagram: "#",
-      facebook: "#",
-      twitter: "#",
-      linkedin: "#",
-    },
-    estatisticas: {
-      jovensImpactados: "500+",
-      palestrasRealizadas: "50+",
-      parceriasAtivas: "20+",
-    },
-    juridico: {
-      razaoSocial: "Projeto Metanoia: mudança de mentalidade",
-      cnpj: "",
-      enderecoCompleto: "Brasília, DF",
-      responsavelLegal: "",
-      emailJuridico: "juridico@projetometanoia.com.br",
-      telefoneJuridico: "(61) 98319-4827",
-    },
-  })
-
-  const [loading, setLoading] = useState(false)
+  const [configuracoes, setConfiguracoes] = useState<Configuracoes>(defaultConfiguracoes)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     fetchConfiguracoes()
@@ -69,36 +78,44 @@ export function useConfiguracoes() {
 
   const fetchConfiguracoes = async () => {
     try {
-      const docRef = doc(db, "configuracoes", "site")
+      const docRef = doc(db, "configuracoes", "geral")
       const docSnap = await getDoc(docRef)
 
       if (docSnap.exists()) {
-        const data = docSnap.data() as ConfiguracoesSite
-        setConfiguracoes(data)
+        const data = docSnap.data() as Configuracoes
+        setConfiguracoes({ ...defaultConfiguracoes, ...data })
+      } else {
+        // Se não existe, criar com valores padrão
+        await setDoc(docRef, defaultConfiguracoes)
+        setConfiguracoes(defaultConfiguracoes)
       }
     } catch (error) {
       console.error("Erro ao buscar configurações:", error)
+      setConfiguracoes(defaultConfiguracoes)
+    } finally {
+      setLoading(false)
     }
   }
 
-  const salvarConfiguracoes = async (novasConfiguracoes: ConfiguracoesSite) => {
-    setLoading(true)
+  const updateConfiguracoes = async (novasConfiguracoes: Partial<Configuracoes>) => {
     try {
-      await setDoc(doc(db, "configuracoes", "site"), novasConfiguracoes)
-      setConfiguracoes(novasConfiguracoes)
+      const docRef = doc(db, "configuracoes", "geral")
+      const configuracoesAtualizadas = { ...configuracoes, ...novasConfiguracoes }
+
+      await setDoc(docRef, configuracoesAtualizadas, { merge: true })
+      setConfiguracoes(configuracoesAtualizadas)
+
       return true
     } catch (error) {
-      console.error("Erro ao salvar configurações:", error)
+      console.error("Erro ao atualizar configurações:", error)
       return false
-    } finally {
-      setLoading(false)
     }
   }
 
   return {
     configuracoes,
     loading,
-    salvarConfiguracoes,
+    updateConfiguracoes,
     fetchConfiguracoes,
   }
 }

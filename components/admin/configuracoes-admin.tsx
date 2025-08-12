@@ -1,396 +1,197 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Badge } from "@/components/ui/badge"
-import {
-  Settings,
-  Save,
-  MapPin,
-  Phone,
-  Mail,
-  Users,
-  Award,
-  Target,
-  Instagram,
-  Facebook,
-  Twitter,
-  Linkedin,
-  Scale,
-} from "lucide-react"
-import { doc, getDoc, setDoc } from "firebase/firestore"
-import { db } from "@/lib/firebase"
-
-interface ConfiguracoesSite {
-  contato: {
-    email: string
-    telefone: string
-    localizacao: string
-  }
-  redesSociais: {
-    instagram: string
-    facebook: string
-    twitter: string
-    linkedin: string
-  }
-  estatisticas: {
-    jovensImpactados: string
-    palestrasRealizadas: string
-    parceriasAtivas: string
-  }
-  juridico: {
-    razaoSocial: string
-    cnpj: string
-    enderecoCompleto: string
-    responsavelLegal: string
-    emailJuridico: string
-    telefoneJuridico: string
-  }
-}
+import { Textarea } from "@/components/ui/textarea"
+import { Save, Mail, Scale, FileText } from "lucide-react"
+import { useConfiguracoes } from "@/hooks/use-configuracoes"
 
 export default function ConfiguracoesAdmin() {
-  const [loading, setLoading] = useState(false)
-  const [success, setSuccess] = useState(false)
-  const [configuracoes, setConfiguracoes] = useState<ConfiguracoesSite>({
+  const { configuracoes, loading, updateConfiguracoes } = useConfiguracoes()
+  const [saving, setSaving] = useState(false)
+  const [activeTab, setActiveTab] = useState("contato")
+
+  const [formData, setFormData] = useState({
     contato: {
-      email: "contato@projetometanoia.com.br",
-      telefone: "(61) 98319-4827",
-      localizacao: "Brasília, DF",
-    },
-    redesSociais: {
-      instagram: "#",
-      facebook: "#",
-      twitter: "#",
-      linkedin: "#",
-    },
-    estatisticas: {
-      jovensImpactados: "500+",
-      palestrasRealizadas: "50+",
-      parceriasAtivas: "20+",
+      email: configuracoes.contato.email,
+      telefone: configuracoes.contato.telefone,
+      endereco: configuracoes.contato.endereco,
     },
     juridico: {
-      razaoSocial: "Projeto Metanoia: mudança de mentalidade",
-      cnpj: "",
-      enderecoCompleto: "Brasília, DF",
-      responsavelLegal: "",
-      emailJuridico: "juridico@projetometanoia.com.br",
-      telefoneJuridico: "(61) 98319-4827",
+      razaoSocial: configuracoes.juridico.razaoSocial,
+      cnpj: configuracoes.juridico.cnpj,
+      enderecoCompleto: configuracoes.juridico.enderecoCompleto,
+      responsavelLegal: configuracoes.juridico.responsavelLegal,
+      emailJuridico: configuracoes.juridico.emailJuridico,
+      telefoneJuridico: configuracoes.juridico.telefoneJuridico,
+    },
+    redes: {
+      facebook: configuracoes.redes.facebook,
+      instagram: configuracoes.redes.instagram,
+      youtube: configuracoes.redes.youtube,
+      whatsapp: configuracoes.redes.whatsapp,
+      telegram: configuracoes.redes.telegram,
+      discord: configuracoes.redes.discord,
+      linkCustom1: {
+        nome: configuracoes.redes.linkCustom1.nome,
+        url: configuracoes.redes.linkCustom1.url,
+      },
+      linkCustom2: {
+        nome: configuracoes.redes.linkCustom2.nome,
+        url: configuracoes.redes.linkCustom2.url,
+      },
     },
   })
 
-  useEffect(() => {
-    fetchConfiguracoes()
-  }, [])
-
-  const fetchConfiguracoes = async () => {
-    try {
-      const docRef = doc(db, "configuracoes", "site")
-      const docSnap = await getDoc(docRef)
-
-      if (docSnap.exists()) {
-        setConfiguracoes(docSnap.data() as ConfiguracoesSite)
-      }
-    } catch (error) {
-      console.error("Erro ao buscar configurações:", error)
+  // Atualizar formData quando configuracoes mudar
+  useState(() => {
+    if (!loading) {
+      setFormData({
+        contato: {
+          email: configuracoes.contato.email,
+          telefone: configuracoes.contato.telefone,
+          endereco: configuracoes.contato.endereco,
+        },
+        juridico: {
+          razaoSocial: configuracoes.juridico.razaoSocial,
+          cnpj: configuracoes.juridico.cnpj,
+          enderecoCompleto: configuracoes.juridico.enderecoCompleto,
+          responsavelLegal: configuracoes.juridico.responsavelLegal,
+          emailJuridico: configuracoes.juridico.emailJuridico,
+          telefoneJuridico: configuracoes.juridico.telefoneJuridico,
+        },
+        redes: {
+          facebook: configuracoes.redes.facebook,
+          instagram: configuracoes.redes.instagram,
+          youtube: configuracoes.redes.youtube,
+          whatsapp: configuracoes.redes.whatsapp,
+          telegram: configuracoes.redes.telegram,
+          discord: configuracoes.redes.discord,
+          linkCustom1: {
+            nome: configuracoes.redes.linkCustom1.nome,
+            url: configuracoes.redes.linkCustom1.url,
+          },
+          linkCustom2: {
+            nome: configuracoes.redes.linkCustom2.nome,
+            url: configuracoes.redes.linkCustom2.url,
+          },
+        },
+      })
     }
-  }
+  })
 
   const handleSave = async () => {
-    setLoading(true)
-    setSuccess(false)
-
+    setSaving(true)
     try {
-      await setDoc(doc(db, "configuracoes", "site"), configuracoes)
-      setSuccess(true)
-      setTimeout(() => setSuccess(false), 3000)
+      const success = await updateConfiguracoes(formData)
+      if (success) {
+        alert("Configurações salvas com sucesso!")
+      } else {
+        alert("Erro ao salvar configurações. Tente novamente.")
+      }
     } catch (error) {
-      console.error("Erro ao salvar configurações:", error)
+      console.error("Erro ao salvar:", error)
       alert("Erro ao salvar configurações. Tente novamente.")
     } finally {
-      setLoading(false)
+      setSaving(false)
     }
   }
 
-  const handleContatoChange = (field: keyof ConfiguracoesSite["contato"], value: string) => {
-    setConfiguracoes((prev) => ({
+  const handleChange = (section: string, field: string, value: string) => {
+    setFormData((prev) => ({
       ...prev,
-      contato: {
-        ...prev.contato,
+      [section]: {
+        ...prev[section as keyof typeof prev],
         [field]: value,
       },
     }))
   }
 
-  const handleRedesSociaisChange = (field: keyof ConfiguracoesSite["redesSociais"], value: string) => {
-    setConfiguracoes((prev) => ({
+  const handleNestedChange = (section: string, nested: string, field: string, value: string) => {
+    setFormData((prev) => ({
       ...prev,
-      redesSociais: {
-        ...prev.redesSociais,
-        [field]: value,
+      [section]: {
+        ...prev[section as keyof typeof prev],
+        [nested]: {
+          ...(prev[section as keyof typeof prev] as any)[nested],
+          [field]: value,
+        },
       },
     }))
   }
 
-  const handleEstatisticasChange = (field: keyof ConfiguracoesSite["estatisticas"], value: string) => {
-    setConfiguracoes((prev) => ({
-      ...prev,
-      estatisticas: {
-        ...prev.estatisticas,
-        [field]: value,
-      },
-    }))
-  }
-
-  const handleJuridicoChange = (field: keyof ConfiguracoesSite["juridico"], value: string) => {
-    setConfiguracoes((prev) => ({
-      ...prev,
-      juridico: {
-        ...prev.juridico,
-        [field]: value,
-      },
-    }))
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-orange-500"></div>
+      </div>
+    )
   }
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold flex items-center">
-            <Settings className="mr-3 h-6 w-6" />
-            Configurações do Site
-          </h2>
-          <p className="text-gray-600 mt-1">Gerencie as informações gerais do site</p>
+          <h2 className="text-2xl font-bold">Configurações</h2>
+          <p className="text-gray-600 mt-1">Gerencie as configurações gerais do sistema</p>
         </div>
-        <div className="flex items-center space-x-3">
-          {success && (
-            <Badge className="bg-green-100 text-green-800 border-green-200">
-              <Save className="mr-1 h-3 w-3" />
-              Salvo com sucesso!
-            </Badge>
-          )}
-          <Button onClick={handleSave} disabled={loading} className="bg-orange-500 hover:bg-orange-600">
-            <Save className="mr-2 h-4 w-4" />
-            {loading ? "Salvando..." : "Salvar Alterações"}
-          </Button>
-        </div>
+        <Button onClick={handleSave} disabled={saving}>
+          <Save className="h-4 w-4 mr-2" />
+          {saving ? "Salvando..." : "Salvar Alterações"}
+        </Button>
       </div>
 
-      <Tabs defaultValue="contato" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4 bg-gray-100 p-1 rounded-xl">
-          <TabsTrigger value="contato" className="rounded-lg">
-            <Mail className="mr-2 h-4 w-4" />
-            Contato
-          </TabsTrigger>
-          <TabsTrigger value="redes" className="rounded-lg">
-            <Instagram className="mr-2 h-4 w-4" />
-            Redes Sociais
-          </TabsTrigger>
-          <TabsTrigger value="estatisticas" className="rounded-lg">
-            <Users className="mr-2 h-4 w-4" />
-            Estatísticas
-          </TabsTrigger>
-          <TabsTrigger value="juridico" className="rounded-lg">
-            <Scale className="mr-2 h-4 w-4" />
-            Jurídico
-          </TabsTrigger>
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="contato">Contato</TabsTrigger>
+          <TabsTrigger value="juridico">Jurídico</TabsTrigger>
+          <TabsTrigger value="redes">Redes Sociais</TabsTrigger>
         </TabsList>
 
         <TabsContent value="contato" className="space-y-6">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center">
-                <Mail className="mr-2 h-5 w-5 text-orange-500" />
+                <Mail className="h-5 w-5 mr-2" />
                 Informações de Contato
               </CardTitle>
-              <CardDescription>Configure as informações de contato que aparecem no site</CardDescription>
+              <CardDescription>Configure as informações de contato da organização</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <Label htmlFor="email" className="flex items-center">
-                    <Mail className="mr-2 h-4 w-4 text-orange-500" />
-                    Email
-                  </Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={configuracoes.contato.email}
-                    onChange={(e) => handleContatoChange("email", e.target.value)}
-                    placeholder="contato@projetometanoia.com.br"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="telefone" className="flex items-center">
-                    <Phone className="mr-2 h-4 w-4 text-green-500" />
-                    Telefone
-                  </Label>
-                  <Input
-                    id="telefone"
-                    value={configuracoes.contato.telefone}
-                    onChange={(e) => handleContatoChange("telefone", e.target.value)}
-                    placeholder="(61) 98319-4827"
-                  />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="localizacao" className="flex items-center">
-                  <MapPin className="mr-2 h-4 w-4 text-blue-500" />
-                  Localização
-                </Label>
+            <CardContent className="space-y-4">
+              <div>
+                <Label htmlFor="email">Email Principal</Label>
                 <Input
-                  id="localizacao"
-                  value={configuracoes.contato.localizacao}
-                  onChange={(e) => handleContatoChange("localizacao", e.target.value)}
-                  placeholder="Brasília, DF"
+                  id="email"
+                  type="email"
+                  value={formData.contato.email}
+                  onChange={(e) => handleChange("contato", "email", e.target.value)}
+                  placeholder="contato@projetometanoia.com.br"
                 />
               </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
 
-        <TabsContent value="redes" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <Instagram className="mr-2 h-5 w-5 text-pink-500" />
-                Redes Sociais
-              </CardTitle>
-              <CardDescription>Configure os links das redes sociais do projeto</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <Label htmlFor="instagram" className="flex items-center">
-                    <Instagram className="mr-2 h-4 w-4 text-pink-500" />
-                    Instagram
-                  </Label>
-                  <Input
-                    id="instagram"
-                    type="url"
-                    value={configuracoes.redesSociais.instagram}
-                    onChange={(e) => handleRedesSociaisChange("instagram", e.target.value)}
-                    placeholder="https://instagram.com/projetometanoia"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="facebook" className="flex items-center">
-                    <Facebook className="mr-2 h-4 w-4 text-blue-600" />
-                    Facebook
-                  </Label>
-                  <Input
-                    id="facebook"
-                    type="url"
-                    value={configuracoes.redesSociais.facebook}
-                    onChange={(e) => handleRedesSociaisChange("facebook", e.target.value)}
-                    placeholder="https://facebook.com/projetometanoia"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="twitter" className="flex items-center">
-                    <Twitter className="mr-2 h-4 w-4 text-blue-400" />
-                    Twitter
-                  </Label>
-                  <Input
-                    id="twitter"
-                    type="url"
-                    value={configuracoes.redesSociais.twitter}
-                    onChange={(e) => handleRedesSociaisChange("twitter", e.target.value)}
-                    placeholder="https://twitter.com/projetometanoia"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="linkedin" className="flex items-center">
-                    <Linkedin className="mr-2 h-4 w-4 text-blue-700" />
-                    LinkedIn
-                  </Label>
-                  <Input
-                    id="linkedin"
-                    type="url"
-                    value={configuracoes.redesSociais.linkedin}
-                    onChange={(e) => handleRedesSociaisChange("linkedin", e.target.value)}
-                    placeholder="https://linkedin.com/company/projetometanoia"
-                  />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="estatisticas" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <Users className="mr-2 h-5 w-5 text-emerald-500" />
-                Números de Impacto
-              </CardTitle>
-              <CardDescription>Configure as estatísticas que aparecem na página inicial e sobre</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="space-y-2">
-                  <Label htmlFor="jovensImpactados" className="flex items-center">
-                    <Users className="mr-2 h-4 w-4 text-orange-500" />
-                    Jovens Impactados
-                  </Label>
-                  <Input
-                    id="jovensImpactados"
-                    value={configuracoes.estatisticas.jovensImpactados}
-                    onChange={(e) => handleEstatisticasChange("jovensImpactados", e.target.value)}
-                    placeholder="500+"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="palestrasRealizadas" className="flex items-center">
-                    <Award className="mr-2 h-4 w-4 text-emerald-500" />
-                    Palestras Realizadas
-                  </Label>
-                  <Input
-                    id="palestrasRealizadas"
-                    value={configuracoes.estatisticas.palestrasRealizadas}
-                    onChange={(e) => handleEstatisticasChange("palestrasRealizadas", e.target.value)}
-                    placeholder="50+"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="parceriasAtivas" className="flex items-center">
-                    <Target className="mr-2 h-4 w-4 text-blue-500" />
-                    Parcerias Ativas
-                  </Label>
-                  <Input
-                    id="parceriasAtivas"
-                    value={configuracoes.estatisticas.parceriasAtivas}
-                    onChange={(e) => handleEstatisticasChange("parceriasAtivas", e.target.value)}
-                    placeholder="20+"
-                  />
-                </div>
+              <div>
+                <Label htmlFor="telefone">Telefone</Label>
+                <Input
+                  id="telefone"
+                  value={formData.contato.telefone}
+                  onChange={(e) => handleChange("contato", "telefone", e.target.value)}
+                  placeholder="(61) 98319-4827"
+                />
               </div>
 
-              <div className="mt-8 p-6 bg-gray-50 rounded-xl">
-                <h4 className="text-lg font-semibold mb-4 text-gray-800">Preview das Estatísticas</h4>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div className="text-center p-4 bg-white rounded-lg shadow-sm">
-                    <div className="text-3xl font-bold text-orange-500 mb-2">
-                      {configuracoes.estatisticas.jovensImpactados}
-                    </div>
-                    <div className="text-gray-600">Jovens Impactados</div>
-                  </div>
-                  <div className="text-center p-4 bg-white rounded-lg shadow-sm">
-                    <div className="text-3xl font-bold text-emerald-500 mb-2">
-                      {configuracoes.estatisticas.palestrasRealizadas}
-                    </div>
-                    <div className="text-gray-600">Palestras Realizadas</div>
-                  </div>
-                  <div className="text-center p-4 bg-white rounded-lg shadow-sm">
-                    <div className="text-3xl font-bold text-blue-500 mb-2">
-                      {configuracoes.estatisticas.parceriasAtivas}
-                    </div>
-                    <div className="text-gray-600">Parcerias Ativas</div>
-                  </div>
-                </div>
+              <div>
+                <Label htmlFor="endereco">Endereço</Label>
+                <Textarea
+                  id="endereco"
+                  value={formData.contato.endereco}
+                  onChange={(e) => handleChange("contato", "endereco", e.target.value)}
+                  placeholder="Brasília, DF"
+                  rows={3}
+                />
               </div>
             </CardContent>
           </Card>
@@ -400,89 +201,227 @@ export default function ConfiguracoesAdmin() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center">
-                <Scale className="mr-2 h-5 w-5 text-purple-500" />
+                <Scale className="h-5 w-5 mr-2" />
                 Informações Jurídicas
               </CardTitle>
               <CardDescription>
-                Configure as informações legais para Termos de Uso e Política de Privacidade
+                Configure os dados jurídicos para Termos de Uso e Política de Privacidade
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <Label htmlFor="razaoSocial">Razão Social Completa</Label>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="razaoSocial">Razão Social / Nome da Organização</Label>
                   <Input
                     id="razaoSocial"
-                    value={configuracoes.juridico.razaoSocial}
-                    onChange={(e) => handleJuridicoChange("razaoSocial", e.target.value)}
-                    placeholder="Nome completo da organização"
+                    value={formData.juridico.razaoSocial}
+                    onChange={(e) => handleChange("juridico", "razaoSocial", e.target.value)}
+                    placeholder="Projeto Metanoia: mudança de mentalidade"
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="cnpj">CNPJ</Label>
+
+                <div>
+                  <Label htmlFor="cnpj">CNPJ (opcional)</Label>
                   <Input
                     id="cnpj"
-                    value={configuracoes.juridico.cnpj}
-                    onChange={(e) => handleJuridicoChange("cnpj", e.target.value)}
+                    value={formData.juridico.cnpj}
+                    onChange={(e) => handleChange("juridico", "cnpj", e.target.value)}
                     placeholder="00.000.000/0000-00"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="enderecoCompleto">Endereço Completo</Label>
-                  <Input
-                    id="enderecoCompleto"
-                    value={configuracoes.juridico.enderecoCompleto}
-                    onChange={(e) => handleJuridicoChange("enderecoCompleto", e.target.value)}
-                    placeholder="Rua, número, bairro, cidade, CEP"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="responsavelLegal">Responsável Legal</Label>
-                  <Input
-                    id="responsavelLegal"
-                    value={configuracoes.juridico.responsavelLegal}
-                    onChange={(e) => handleJuridicoChange("responsavelLegal", e.target.value)}
-                    placeholder="Nome do diretor/presidente"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="emailJuridico">Email Jurídico</Label>
-                  <Input
-                    id="emailJuridico"
-                    type="email"
-                    value={configuracoes.juridico.emailJuridico}
-                    onChange={(e) => handleJuridicoChange("emailJuridico", e.target.value)}
-                    placeholder="juridico@projetometanoia.com.br"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="telefoneJuridico">Telefone Jurídico</Label>
-                  <Input
-                    id="telefoneJuridico"
-                    value={configuracoes.juridico.telefoneJuridico}
-                    onChange={(e) => handleJuridicoChange("telefoneJuridico", e.target.value)}
-                    placeholder="(61) 98319-4827"
                   />
                 </div>
               </div>
 
-              <div className="mt-8 p-6 bg-purple-50 rounded-xl">
-                <h4 className="text-lg font-semibold mb-4 text-purple-800">Informações Utilizadas</h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+              <div>
+                <Label htmlFor="enderecoCompleto">Endereço Completo</Label>
+                <Textarea
+                  id="enderecoCompleto"
+                  value={formData.juridico.enderecoCompleto}
+                  onChange={(e) => handleChange("juridico", "enderecoCompleto", e.target.value)}
+                  placeholder="Rua, número, bairro, cidade, estado, CEP"
+                  rows={3}
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="responsavelLegal">Responsável Legal (opcional)</Label>
+                <Input
+                  id="responsavelLegal"
+                  value={formData.juridico.responsavelLegal}
+                  onChange={(e) => handleChange("juridico", "responsavelLegal", e.target.value)}
+                  placeholder="Nome do responsável legal"
+                />
+              </div>
+
+              <div className="bg-blue-50 p-4 rounded-lg">
+                <h4 className="font-semibold text-blue-800 mb-3 flex items-center">
+                  <FileText className="h-4 w-4 mr-2" />
+                  Contatos para Questões Jurídicas
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <strong>Páginas Jurídicas:</strong>
-                    <ul className="mt-2 space-y-1 text-gray-600">
-                      <li>• Termos de Uso (/termos)</li>
-                      <li>• Política de Privacidade (/privacidade)</li>
-                    </ul>
+                    <Label htmlFor="emailJuridico">Email Jurídico</Label>
+                    <Input
+                      id="emailJuridico"
+                      type="email"
+                      value={formData.juridico.emailJuridico}
+                      onChange={(e) => handleChange("juridico", "emailJuridico", e.target.value)}
+                      placeholder="juridico@projetometanoia.com.br"
+                    />
+                    <p className="text-xs text-blue-600 mt-1">Para exercer direitos LGPD</p>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="telefoneJuridico">Telefone Jurídico</Label>
+                    <Input
+                      id="telefoneJuridico"
+                      value={formData.juridico.telefoneJuridico}
+                      onChange={(e) => handleChange("juridico", "telefoneJuridico", e.target.value)}
+                      placeholder="(61) 98319-4827"
+                    />
+                    <p className="text-xs text-blue-600 mt-1">Para questões de privacidade</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-green-50 p-4 rounded-lg">
+                <h4 className="font-semibold text-green-800 mb-2">ℹ️ Como estes dados são usados:</h4>
+                <ul className="text-sm text-green-700 space-y-1">
+                  <li>
+                    • <strong>Razão Social:</strong> Aparece nos Termos de Uso e Política de Privacidade
+                  </li>
+                  <li>
+                    • <strong>Endereço:</strong> Usado nas páginas jurídicas para identificação da organização
+                  </li>
+                  <li>
+                    • <strong>Contatos Jurídicos:</strong> Para usuários exercerem direitos da LGPD
+                  </li>
+                  <li>
+                    • <strong>Responsável Legal:</strong> Identificação do responsável pelo tratamento de dados
+                  </li>
+                </ul>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="redes" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Redes Sociais</CardTitle>
+              <CardDescription>Configure os links das redes sociais da organização</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="facebook">Facebook</Label>
+                  <Input
+                    id="facebook"
+                    type="url"
+                    value={formData.redes.facebook}
+                    onChange={(e) => handleChange("redes", "facebook", e.target.value)}
+                    placeholder="https://facebook.com/projetometanoia"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="instagram">Instagram</Label>
+                  <Input
+                    id="instagram"
+                    type="url"
+                    value={formData.redes.instagram}
+                    onChange={(e) => handleChange("redes", "instagram", e.target.value)}
+                    placeholder="https://instagram.com/projetometanoia"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="youtube">YouTube</Label>
+                  <Input
+                    id="youtube"
+                    type="url"
+                    value={formData.redes.youtube}
+                    onChange={(e) => handleChange("redes", "youtube", e.target.value)}
+                    placeholder="https://youtube.com/@projetometanoia"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="whatsapp">WhatsApp</Label>
+                  <Input
+                    id="whatsapp"
+                    value={formData.redes.whatsapp}
+                    onChange={(e) => handleChange("redes", "whatsapp", e.target.value)}
+                    placeholder="(61) 98319-4827"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="telegram">Telegram</Label>
+                  <Input
+                    id="telegram"
+                    type="url"
+                    value={formData.redes.telegram}
+                    onChange={(e) => handleChange("redes", "telegram", e.target.value)}
+                    placeholder="https://t.me/projetometanoia"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="discord">Discord</Label>
+                  <Input
+                    id="discord"
+                    type="url"
+                    value={formData.redes.discord}
+                    onChange={(e) => handleChange("redes", "discord", e.target.value)}
+                    placeholder="https://discord.gg/projetometanoia"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <h4 className="font-semibold">Links Personalizados</h4>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="linkCustom1Nome">Nome do Link 1</Label>
+                    <Input
+                      id="linkCustom1Nome"
+                      value={formData.redes.linkCustom1.nome}
+                      onChange={(e) => handleNestedChange("redes", "linkCustom1", "nome", e.target.value)}
+                      placeholder="Ex: Site Oficial"
+                    />
                   </div>
                   <div>
-                    <strong>Conformidade:</strong>
-                    <ul className="mt-2 space-y-1 text-gray-600">
-                      <li>• LGPD Compliant</li>
-                      <li>• Foro: Brasília/DF</li>
-                      <li>• Idade mínima: 15 anos</li>
-                    </ul>
+                    <Label htmlFor="linkCustom1Url">URL do Link 1</Label>
+                    <Input
+                      id="linkCustom1Url"
+                      type="url"
+                      value={formData.redes.linkCustom1.url}
+                      onChange={(e) => handleNestedChange("redes", "linkCustom1", "url", e.target.value)}
+                      placeholder="https://exemplo.com"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="linkCustom2Nome">Nome do Link 2</Label>
+                    <Input
+                      id="linkCustom2Nome"
+                      value={formData.redes.linkCustom2.nome}
+                      onChange={(e) => handleNestedChange("redes", "linkCustom2", "nome", e.target.value)}
+                      placeholder="Ex: Blog"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="linkCustom2Url">URL do Link 2</Label>
+                    <Input
+                      id="linkCustom2Url"
+                      type="url"
+                      value={formData.redes.linkCustom2.url}
+                      onChange={(e) => handleNestedChange("redes", "linkCustom2", "url", e.target.value)}
+                      placeholder="https://blog.exemplo.com"
+                    />
                   </div>
                 </div>
               </div>

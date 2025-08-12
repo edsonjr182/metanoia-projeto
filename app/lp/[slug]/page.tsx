@@ -9,9 +9,11 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
+import { Checkbox } from "@/components/ui/checkbox"
 import { Heart, ArrowDown, CheckCircle, Sparkles, Users, Target, Video, MessageCircle, Send, Play } from "lucide-react"
 import { collection, query, where, getDocs, addDoc } from "firebase/firestore"
 import { db } from "@/lib/firebase"
+import { LegalPopup } from "@/components/legal-popup"
 
 interface LandingPage {
   id: string
@@ -67,6 +69,8 @@ export default function LandingPageView() {
   const [formLoading, setFormLoading] = useState(false)
   const [success, setSuccess] = useState(false)
   const [videoLoading, setVideoLoading] = useState(true)
+  const [showLegalPopup, setShowLegalPopup] = useState(false)
+  const [legalAccepted, setLegalAccepted] = useState(false)
   const [formData, setFormData] = useState({
     nome: "",
     whatsapp: "",
@@ -98,6 +102,11 @@ export default function LandingPageView() {
     e.preventDefault()
     if (!page) return
 
+    if (!legalAccepted) {
+      alert("Você deve aceitar os Termos de Uso e Política de Privacidade para continuar.")
+      return
+    }
+
     setFormLoading(true)
 
     try {
@@ -107,6 +116,8 @@ export default function LandingPageView() {
         whatsapp: formData.whatsapp,
         email: formData.email,
         idade: Number.parseInt(formData.idade),
+        legalAccepted: true,
+        legalAcceptedAt: new Date().toISOString(),
         criadoEm: new Date().toISOString(),
       })
 
@@ -117,6 +128,7 @@ export default function LandingPageView() {
         email: "",
         idade: "",
       })
+      setLegalAccepted(false)
     } catch (error) {
       console.error("Erro ao enviar formulário:", error)
       alert("Erro ao enviar formulário. Tente novamente.")
@@ -134,6 +146,11 @@ export default function LandingPageView() {
 
   const scrollToForm = () => {
     document.getElementById("formulario")?.scrollIntoView({ behavior: "smooth" })
+  }
+
+  const handleLegalAccept = () => {
+    setLegalAccepted(true)
+    setShowLegalPopup(false)
   }
 
   const renderGruposSection = () => {
@@ -605,7 +622,10 @@ export default function LandingPageView() {
                     Parabéns! Sua inscrição foi confirmada com sucesso. Em breve entraremos em contato com você.
                   </p>
                   <Button
-                    onClick={() => setSuccess(false)}
+                    onClick={() => {
+                      setSuccess(false)
+                      setLegalAccepted(false)
+                    }}
                     variant="outline"
                     className="border-2"
                     style={{
@@ -654,7 +674,7 @@ export default function LandingPageView() {
                         id="idade"
                         name="idade"
                         type="number"
-                        min="14"
+                        min="15"
                         max="100"
                         value={formData.idade}
                         onChange={handleChange}
@@ -663,7 +683,7 @@ export default function LandingPageView() {
                           borderColor: `${page.cores.primaria}40`,
                           focusBorderColor: page.cores.primaria,
                         }}
-                        placeholder="Sua idade"
+                        placeholder="Sua idade (mín. 15 anos)"
                         required
                       />
                     </div>
@@ -716,13 +736,48 @@ export default function LandingPageView() {
                     />
                   </div>
 
+                  {/* Checkbox de Aceite dos Termos */}
+                  <div className="bg-gray-50 p-6 rounded-xl border-2 border-gray-200">
+                    <div className="flex items-start space-x-3">
+                      <Checkbox
+                        id="legal-accept"
+                        checked={legalAccepted}
+                        onCheckedChange={(checked) => setLegalAccepted(checked as boolean)}
+                        className="mt-1"
+                      />
+                      <div className="flex-1">
+                        <Label
+                          htmlFor="legal-accept"
+                          className="text-sm font-medium cursor-pointer"
+                          style={{ color: page.cores.texto }}
+                        >
+                          Li e aceito os{" "}
+                          <button
+                            type="button"
+                            onClick={() => setShowLegalPopup(true)}
+                            className="text-blue-600 hover:text-blue-800 underline font-semibold"
+                          >
+                            Termos de Uso e Política de Privacidade
+                          </button>{" "}
+                          *
+                        </Label>
+                        <p className="text-xs text-gray-600 mt-1">
+                          Ao marcar esta opção, você confirma que leu e concorda com nossos termos e políticas de
+                          privacidade, incluindo o tratamento de seus dados pessoais conforme a LGPD.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
                   <Button
                     type="submit"
-                    disabled={formLoading}
-                    className="w-full py-6 text-xl font-semibold shadow-xl hover:shadow-2xl transition-all duration-500 rounded-2xl group relative overflow-hidden"
+                    disabled={formLoading || !legalAccepted}
+                    className={`w-full py-6 text-xl font-semibold shadow-xl hover:shadow-2xl transition-all duration-500 rounded-2xl group relative overflow-hidden ${
+                      !legalAccepted ? "opacity-50 cursor-not-allowed" : ""
+                    }`}
                     style={{
-                      backgroundColor: page.cores.botao,
-                      borderColor: page.cores.botao,
+                      backgroundColor: legalAccepted ? page.cores.botao : "#9CA3AF",
+                      borderColor: legalAccepted ? page.cores.botao : "#9CA3AF",
                       color: "#ffffff",
                     }}
                   >
@@ -732,6 +787,8 @@ export default function LandingPageView() {
                           <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white mr-3"></div>
                           Enviando...
                         </>
+                      ) : !legalAccepted ? (
+                        "Aceite os termos para continuar"
                       ) : (
                         <>
                           {page.botaoTexto}
@@ -743,7 +800,7 @@ export default function LandingPageView() {
                   </Button>
 
                   <p className="text-center text-sm opacity-70 mt-4">
-                    * Campos obrigatórios. Suas informações estão seguras conosco.
+                    * Campos obrigatórios. Suas informações estão seguras conosco e protegidas pela LGPD.
                   </p>
                 </form>
               )}
@@ -764,9 +821,20 @@ export default function LandingPageView() {
             </span>
           </div>
           <p className="opacity-70 mb-4">Transformando vidas através da educação, esperança e oportunidades.</p>
+          <div className="flex justify-center space-x-6 text-sm opacity-60 mb-4">
+            <button onClick={() => setShowLegalPopup(true)} className="hover:opacity-80 transition-opacity underline">
+              Termos de Uso
+            </button>
+            <button onClick={() => setShowLegalPopup(true)} className="hover:opacity-80 transition-opacity underline">
+              Política de Privacidade
+            </button>
+          </div>
           <p className="text-sm opacity-50">© 2024 Projeto Metanoia. Todos os direitos reservados.</p>
         </div>
       </footer>
+
+      {/* Legal Popup */}
+      <LegalPopup isOpen={showLegalPopup} onClose={() => setShowLegalPopup(false)} onAccept={handleLegalAccept} />
     </div>
   )
 }
