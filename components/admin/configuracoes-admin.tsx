@@ -20,6 +20,7 @@ import {
   Facebook,
   Twitter,
   Linkedin,
+  Scale,
 } from "lucide-react"
 import { doc, getDoc, setDoc } from "firebase/firestore"
 import { db } from "@/lib/firebase"
@@ -41,6 +42,14 @@ interface ConfiguracoesSite {
     palestrasRealizadas: string
     parceriasAtivas: string
   }
+  juridico: {
+    razaoSocial: string
+    cnpj: string
+    enderecoCompleto: string
+    responsavelLegal: string
+    emailJuridico: string
+    telefoneJuridico: string
+  }
 }
 
 export default function ConfiguracoesAdmin() {
@@ -48,9 +57,9 @@ export default function ConfiguracoesAdmin() {
   const [success, setSuccess] = useState(false)
   const [configuracoes, setConfiguracoes] = useState<ConfiguracoesSite>({
     contato: {
-      email: "contato@projetometanoia.org",
-      telefone: "(11) 99999-9999",
-      localizacao: "São Paulo, SP",
+      email: "contato@projetometanoia.com.br",
+      telefone: "(61) 98319-4827",
+      localizacao: "Brasília, DF",
     },
     redesSociais: {
       instagram: "#",
@@ -62,6 +71,14 @@ export default function ConfiguracoesAdmin() {
       jovensImpactados: "500+",
       palestrasRealizadas: "50+",
       parceriasAtivas: "20+",
+    },
+    juridico: {
+      razaoSocial: "Projeto Metanoia: mudança de mentalidade",
+      cnpj: "",
+      enderecoCompleto: "Brasília, DF",
+      responsavelLegal: "",
+      emailJuridico: "juridico@projetometanoia.com.br",
+      telefoneJuridico: "(61) 98319-4827",
     },
   })
 
@@ -128,6 +145,16 @@ export default function ConfiguracoesAdmin() {
     }))
   }
 
+  const handleJuridicoChange = (field: keyof ConfiguracoesSite["juridico"], value: string) => {
+    setConfiguracoes((prev) => ({
+      ...prev,
+      juridico: {
+        ...prev.juridico,
+        [field]: value,
+      },
+    }))
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -153,7 +180,7 @@ export default function ConfiguracoesAdmin() {
       </div>
 
       <Tabs defaultValue="contato" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3 bg-gray-100 p-1 rounded-xl">
+        <TabsList className="grid w-full grid-cols-4 bg-gray-100 p-1 rounded-xl">
           <TabsTrigger value="contato" className="rounded-lg">
             <Mail className="mr-2 h-4 w-4" />
             Contato
@@ -165,6 +192,10 @@ export default function ConfiguracoesAdmin() {
           <TabsTrigger value="estatisticas" className="rounded-lg">
             <Users className="mr-2 h-4 w-4" />
             Estatísticas
+          </TabsTrigger>
+          <TabsTrigger value="juridico" className="rounded-lg">
+            <Scale className="mr-2 h-4 w-4" />
+            Jurídico
           </TabsTrigger>
         </TabsList>
 
@@ -189,7 +220,7 @@ export default function ConfiguracoesAdmin() {
                     type="email"
                     value={configuracoes.contato.email}
                     onChange={(e) => handleContatoChange("email", e.target.value)}
-                    placeholder="contato@projetometanoia.org"
+                    placeholder="contato@projetometanoia.com.br"
                   />
                 </div>
                 <div className="space-y-2">
@@ -201,7 +232,7 @@ export default function ConfiguracoesAdmin() {
                     id="telefone"
                     value={configuracoes.contato.telefone}
                     onChange={(e) => handleContatoChange("telefone", e.target.value)}
-                    placeholder="(11) 99999-9999"
+                    placeholder="(61) 98319-4827"
                   />
                 </div>
               </div>
@@ -214,7 +245,7 @@ export default function ConfiguracoesAdmin() {
                   id="localizacao"
                   value={configuracoes.contato.localizacao}
                   onChange={(e) => handleContatoChange("localizacao", e.target.value)}
-                  placeholder="São Paulo, SP"
+                  placeholder="Brasília, DF"
                 />
               </div>
             </CardContent>
@@ -338,7 +369,6 @@ export default function ConfiguracoesAdmin() {
                 </div>
               </div>
 
-              {/* Preview das estatísticas */}
               <div className="mt-8 p-6 bg-gray-50 rounded-xl">
                 <h4 className="text-lg font-semibold mb-4 text-gray-800">Preview das Estatísticas</h4>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -359,6 +389,100 @@ export default function ConfiguracoesAdmin() {
                       {configuracoes.estatisticas.parceriasAtivas}
                     </div>
                     <div className="text-gray-600">Parcerias Ativas</div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="juridico" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <Scale className="mr-2 h-5 w-5 text-purple-500" />
+                Informações Jurídicas
+              </CardTitle>
+              <CardDescription>
+                Configure as informações legais para Termos de Uso e Política de Privacidade
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label htmlFor="razaoSocial">Razão Social Completa</Label>
+                  <Input
+                    id="razaoSocial"
+                    value={configuracoes.juridico.razaoSocial}
+                    onChange={(e) => handleJuridicoChange("razaoSocial", e.target.value)}
+                    placeholder="Nome completo da organização"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="cnpj">CNPJ</Label>
+                  <Input
+                    id="cnpj"
+                    value={configuracoes.juridico.cnpj}
+                    onChange={(e) => handleJuridicoChange("cnpj", e.target.value)}
+                    placeholder="00.000.000/0000-00"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="enderecoCompleto">Endereço Completo</Label>
+                  <Input
+                    id="enderecoCompleto"
+                    value={configuracoes.juridico.enderecoCompleto}
+                    onChange={(e) => handleJuridicoChange("enderecoCompleto", e.target.value)}
+                    placeholder="Rua, número, bairro, cidade, CEP"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="responsavelLegal">Responsável Legal</Label>
+                  <Input
+                    id="responsavelLegal"
+                    value={configuracoes.juridico.responsavelLegal}
+                    onChange={(e) => handleJuridicoChange("responsavelLegal", e.target.value)}
+                    placeholder="Nome do diretor/presidente"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="emailJuridico">Email Jurídico</Label>
+                  <Input
+                    id="emailJuridico"
+                    type="email"
+                    value={configuracoes.juridico.emailJuridico}
+                    onChange={(e) => handleJuridicoChange("emailJuridico", e.target.value)}
+                    placeholder="juridico@projetometanoia.com.br"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="telefoneJuridico">Telefone Jurídico</Label>
+                  <Input
+                    id="telefoneJuridico"
+                    value={configuracoes.juridico.telefoneJuridico}
+                    onChange={(e) => handleJuridicoChange("telefoneJuridico", e.target.value)}
+                    placeholder="(61) 98319-4827"
+                  />
+                </div>
+              </div>
+
+              <div className="mt-8 p-6 bg-purple-50 rounded-xl">
+                <h4 className="text-lg font-semibold mb-4 text-purple-800">Informações Utilizadas</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <strong>Páginas Jurídicas:</strong>
+                    <ul className="mt-2 space-y-1 text-gray-600">
+                      <li>• Termos de Uso (/termos)</li>
+                      <li>• Política de Privacidade (/privacidade)</li>
+                    </ul>
+                  </div>
+                  <div>
+                    <strong>Conformidade:</strong>
+                    <ul className="mt-2 space-y-1 text-gray-600">
+                      <li>• LGPD Compliant</li>
+                      <li>• Foro: Brasília/DF</li>
+                      <li>• Idade mínima: 15 anos</li>
+                    </ul>
                   </div>
                 </div>
               </div>

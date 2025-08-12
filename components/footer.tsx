@@ -1,218 +1,181 @@
 "use client"
 
-import { Heart, Mail, Phone, MapPin, Instagram, Facebook, Twitter, Linkedin, ArrowUp } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
+import { useState } from "react"
 import Link from "next/link"
+import { Facebook, Instagram, Twitter, Linkedin, Mail, Phone, MapPin, Heart, Scale, Shield } from "lucide-react"
 import { useConfiguracoes } from "@/hooks/use-configuracoes"
 
 export default function Footer() {
-  const { configuracoes, loading } = useConfiguracoes()
-
-  const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: "smooth" })
-  }
-
-  const formatWhatsApp = (telefone: string) => {
-    // Remove caracteres especiais e espaços
-    const cleanPhone = telefone.replace(/\D/g, "")
-    return `https://wa.me/55${cleanPhone}`
-  }
-
-  const socialLinks = [
-    {
-      icon: Instagram,
-      href: configuracoes.redesSociais.instagram,
-      label: "Instagram",
-      color: "from-pink-500 to-purple-600",
-    },
-    {
-      icon: Facebook,
-      href: configuracoes.redesSociais.facebook,
-      label: "Facebook",
-      color: "from-blue-500 to-blue-600",
-    },
-    {
-      icon: Twitter,
-      href: configuracoes.redesSociais.twitter,
-      label: "Twitter",
-      color: "from-blue-400 to-blue-500",
-    },
-    {
-      icon: Linkedin,
-      href: configuracoes.redesSociais.linkedin,
-      label: "LinkedIn",
-      color: "from-blue-600 to-blue-700",
-    },
-  ]
+  const { configuracoes } = useConfiguracoes()
+  const [currentYear] = useState(new Date().getFullYear())
 
   return (
-    <footer className="bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white relative overflow-hidden">
-      {/* Enhanced Background Pattern */}
-      <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent"></div>
-      <div className="absolute inset-0 bg-dot-pattern opacity-10"></div>
-
-      <div className="relative z-10 content-width container-padding py-20">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-16">
-          {/* Enhanced Brand Section */}
-          <div className="lg:col-span-2">
-            <div className="flex items-center space-x-4 mb-8">
-              <div className="relative">
-                <div className="absolute -inset-3 bg-gradient-to-r from-orange-400/30 to-orange-600/30 rounded-full blur-lg opacity-50"></div>
-                <div className="relative p-4 bg-white/10 rounded-2xl backdrop-blur-sm">
-                  <Heart className="h-12 w-12 text-orange-400" />
-                </div>
-              </div>
-              <div>
-                <span className="font-bold text-3xl">Projeto Metanoia</span>
-                <p className="text-gray-400 text-base mt-1">Transformando Vidas</p>
-              </div>
-            </div>
-            <p className="text-gray-300 text-xl leading-relaxed mb-8 max-w-lg">
-              Transformando vidas através da educação, esperança e oportunidades. Juntos construímos um futuro melhor
-              para nossa juventude.
+    <footer className="bg-gray-900 text-white">
+      <div className="container mx-auto px-4 py-12">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+          {/* Sobre o Projeto */}
+          <div className="space-y-4">
+            <h3 className="text-xl font-bold text-orange-400">Projeto Metanoia</h3>
+            <p className="text-gray-300 text-sm leading-relaxed">
+              Transformando vidas através da educação, desenvolvimento pessoal e mudança de mentalidade. Construindo um
+              futuro melhor para jovens, famílias e comunidades.
             </p>
-
-            {/* Enhanced Social Links */}
-            <div className="flex space-x-4">
-              {socialLinks.map((social) => (
-                <Button
-                  key={social.label}
-                  variant="ghost"
-                  size="sm"
-                  className="w-14 h-14 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 transition-all duration-300 group relative overflow-hidden"
-                  asChild
+            <div className="flex space-x-3">
+              {configuracoes.redesSociais.facebook !== "#" && (
+                <a
+                  href={configuracoes.redesSociais.facebook}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-gray-400 hover:text-blue-500 transition-colors"
                 >
-                  <a
-                    href={social.href !== "#" ? social.href : undefined}
-                    aria-label={social.label}
-                    target={social.href !== "#" ? "_blank" : undefined}
-                    rel={social.href !== "#" ? "noopener noreferrer" : undefined}
-                  >
-                    <social.icon className="h-6 w-6 text-gray-400 group-hover:text-white transition-colors duration-300 relative z-10" />
-                    <div
-                      className={`absolute inset-0 bg-gradient-to-r ${social.color} opacity-0 group-hover:opacity-20 transition-opacity duration-300`}
-                    ></div>
-                  </a>
-                </Button>
-              ))}
+                  <Facebook className="h-5 w-5" />
+                </a>
+              )}
+              {configuracoes.redesSociais.instagram !== "#" && (
+                <a
+                  href={configuracoes.redesSociais.instagram}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-gray-400 hover:text-pink-500 transition-colors"
+                >
+                  <Instagram className="h-5 w-5" />
+                </a>
+              )}
+              {configuracoes.redesSociais.twitter !== "#" && (
+                <a
+                  href={configuracoes.redesSociais.twitter}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-gray-400 hover:text-blue-400 transition-colors"
+                >
+                  <Twitter className="h-5 w-5" />
+                </a>
+              )}
+              {configuracoes.redesSociais.linkedin !== "#" && (
+                <a
+                  href={configuracoes.redesSociais.linkedin}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-gray-400 hover:text-blue-600 transition-colors"
+                >
+                  <Linkedin className="h-5 w-5" />
+                </a>
+              )}
             </div>
           </div>
 
-          {/* Enhanced Quick Links */}
-          <div>
-            <h3 className="font-semibold text-2xl mb-8 text-white">Links Rápidos</h3>
-            <ul className="space-y-4">
-              {[
-                { href: "/sobre", label: "Sobre o Projeto" },
-                { href: "/palestras", label: "Palestras" },
-                { href: "/cursos", label: "Cursos Técnicos" },
-                { href: "/jovens", label: "Área para Jovens" },
-                { href: "/familias", label: "Área para Famílias" },
-                { href: "/contato", label: "Contato" },
-              ].map((link) => (
-                <li key={link.href}>
-                  <Link
-                    href={link.href}
-                    className="text-gray-300 hover:text-orange-400 transition-colors duration-200 flex items-center group text-lg"
-                  >
-                    <span className="w-3 h-3 bg-orange-500/20 group-hover:bg-orange-500/40 transition-colors duration-200 rounded-full mr-3"></span>
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
+          {/* Links Rápidos */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold text-orange-400">Links Rápidos</h3>
+            <ul className="space-y-2 text-sm">
+              <li>
+                <Link href="/sobre" className="text-gray-300 hover:text-orange-400 transition-colors">
+                  Sobre Nós
+                </Link>
+              </li>
+              <li>
+                <Link href="/palestras" className="text-gray-300 hover:text-orange-400 transition-colors">
+                  Palestras
+                </Link>
+              </li>
+              <li>
+                <Link href="/cursos" className="text-gray-300 hover:text-orange-400 transition-colors">
+                  Cursos
+                </Link>
+              </li>
+              <li>
+                <Link href="/jovens" className="text-gray-300 hover:text-orange-400 transition-colors">
+                  Jovens
+                </Link>
+              </li>
+              <li>
+                <Link href="/familias" className="text-gray-300 hover:text-orange-400 transition-colors">
+                  Famílias
+                </Link>
+              </li>
+              <li>
+                <Link href="/contato" className="text-gray-300 hover:text-orange-400 transition-colors">
+                  Contato
+                </Link>
+              </li>
             </ul>
           </div>
 
-          {/* Enhanced Contact Info */}
-          <div>
-            <h3 className="font-semibold text-2xl mb-8 text-white">Contato</h3>
-            <div className="space-y-6">
-              {loading ? (
-                <div className="space-y-4">
-                  <div className="animate-pulse">
-                    <div className="h-4 bg-gray-700 rounded w-3/4 mb-2"></div>
-                    <div className="h-3 bg-gray-700 rounded w-1/2"></div>
-                  </div>
-                  <div className="animate-pulse">
-                    <div className="h-4 bg-gray-700 rounded w-3/4 mb-2"></div>
-                    <div className="h-3 bg-gray-700 rounded w-1/2"></div>
-                  </div>
-                  <div className="animate-pulse">
-                    <div className="h-4 bg-gray-700 rounded w-3/4 mb-2"></div>
-                    <div className="h-3 bg-gray-700 rounded w-1/2"></div>
-                  </div>
+          {/* Contato */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold text-orange-400">Contato</h3>
+            <div className="space-y-3 text-sm">
+              <div className="flex items-center space-x-2 text-gray-300">
+                <Mail className="h-4 w-4 text-orange-400" />
+                <span>{configuracoes.contato.email}</span>
+              </div>
+              <div className="flex items-center space-x-2 text-gray-300">
+                <Phone className="h-4 w-4 text-orange-400" />
+                <span>{configuracoes.contato.telefone}</span>
+              </div>
+              <div className="flex items-center space-x-2 text-gray-300">
+                <MapPin className="h-4 w-4 text-orange-400" />
+                <span>{configuracoes.contato.localizacao}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Impacto */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold text-orange-400">Nosso Impacto</h3>
+            <div className="space-y-3 text-sm">
+              <div className="text-gray-300">
+                <div className="text-2xl font-bold text-orange-400">{configuracoes.estatisticas.jovensImpactados}</div>
+                <div>Jovens Impactados</div>
+              </div>
+              <div className="text-gray-300">
+                <div className="text-2xl font-bold text-orange-400">
+                  {configuracoes.estatisticas.palestrasRealizadas}
                 </div>
-              ) : (
-                <>
-                  <div className="flex items-start space-x-4 group">
-                    <div className="p-3 rounded-2xl bg-orange-500/10 group-hover:bg-orange-500/20 transition-colors duration-200">
-                      <Mail className="h-6 w-6 text-orange-400" />
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-400 mb-1">Email</p>
-                      <a
-                        href={`mailto:${configuracoes.contato.email}`}
-                        className="text-gray-300 text-lg hover:text-orange-400 transition-colors duration-200"
-                      >
-                        {configuracoes.contato.email}
-                      </a>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start space-x-4 group">
-                    <div className="p-3 rounded-2xl bg-emerald-500/10 group-hover:bg-emerald-500/20 transition-colors duration-200">
-                      <Phone className="h-6 w-6 text-emerald-400" />
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-400 mb-1">WhatsApp</p>
-                      <a
-                        href={formatWhatsApp(configuracoes.contato.telefone)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-gray-300 text-lg hover:text-emerald-400 transition-colors duration-200"
-                      >
-                        {configuracoes.contato.telefone}
-                      </a>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start space-x-4 group">
-                    <div className="p-3 rounded-2xl bg-blue-500/10 group-hover:bg-blue-500/20 transition-colors duration-200">
-                      <MapPin className="h-6 w-6 text-blue-400" />
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-400 mb-1">Localização</p>
-                      <p className="text-gray-300 text-lg">{configuracoes.contato.localizacao}</p>
-                    </div>
-                  </div>
-                </>
-              )}
+                <div>Palestras Realizadas</div>
+              </div>
+              <div className="text-gray-300">
+                <div className="text-2xl font-bold text-orange-400">{configuracoes.estatisticas.parceriasAtivas}</div>
+                <div>Parcerias Ativas</div>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Enhanced Bottom Section */}
-        <div className="border-t border-gray-700/50 mt-16 pt-10">
-          <div className="flex flex-col md:flex-row justify-between items-center space-y-6 md:space-y-0">
-            <div className="flex items-center space-x-6">
-              <p className="text-gray-400 text-base">&copy; 2024 Projeto Metanoia. Todos os direitos reservados.</p>
+        {/* Linha divisória */}
+        <div className="border-t border-gray-700 mt-8 pt-8">
+          <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
+            {/* Copyright */}
+            <div className="flex items-center space-x-2 text-sm text-gray-400">
+              <span>© {currentYear} Projeto Metanoia. Feito com</span>
+              <Heart className="h-4 w-4 text-red-500" />
+              <span>para transformar vidas.</span>
             </div>
 
-            <div className="flex items-center space-x-6">
-              <Badge className="px-4 py-2 bg-orange-500/10 text-orange-300 border-orange-400/20 rounded-full">
-                Feito com ❤️ para transformar vidas
-              </Badge>
-
-              <Button
-                onClick={scrollToTop}
-                variant="ghost"
-                size="sm"
-                className="w-12 h-12 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 transition-all duration-300 group"
+            {/* Links Jurídicos */}
+            <div className="flex items-center space-x-6 text-sm">
+              <Link
+                href="/termos"
+                className="text-gray-400 hover:text-blue-400 transition-colors flex items-center space-x-1"
               >
-                <ArrowUp className="h-5 w-5 text-gray-400 group-hover:text-white transition-colors duration-300" />
-              </Button>
+                <Scale className="h-4 w-4" />
+                <span>Termos de Uso</span>
+              </Link>
+              <Link
+                href="/privacidade"
+                className="text-gray-400 hover:text-green-400 transition-colors flex items-center space-x-1"
+              >
+                <Shield className="h-4 w-4" />
+                <span>Política de Privacidade</span>
+              </Link>
             </div>
+          </div>
+
+          {/* Informação LGPD */}
+          <div className="mt-4 text-center">
+            <p className="text-xs text-gray-500">
+              Este site está em conformidade com a Lei Geral de Proteção de Dados (LGPD - Lei 13.709/2018)
+            </p>
           </div>
         </div>
       </div>
